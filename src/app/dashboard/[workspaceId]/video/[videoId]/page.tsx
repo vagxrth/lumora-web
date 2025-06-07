@@ -9,12 +9,13 @@ import {
 import React from 'react'
 
 type Props = {
-  params: {
+  params: Promise<{
     videoId: string
-  }
+  }>
 }
 
-const VideoPage = async ({ params: { videoId } }: Props) => {
+const VideoPage = async ({ params }: Props) => {
+  const { videoId } = await params
   const query = new QueryClient()
 
   await query.prefetchQuery({

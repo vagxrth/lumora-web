@@ -15,7 +15,7 @@ import {
 import React from 'react'
 
 type Props = {
-  params: { workspaceId: string }
+  params: Promise<{ workspaceId: string }>
 }
 
 const Page = async ({ params }: Props) => {
