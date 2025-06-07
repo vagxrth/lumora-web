@@ -8,11 +8,15 @@ import { Toaster } from 'sonner'
 import ReactQueryProvider from '@/react-query'
 import { ReduxProvider } from '@/redux/provider'
 
-const manrope = DM_Sans({ subsets: ['latin'] })
+  const manrope = DM_Sans({ 
+  subsets: ['latin'],
+  display: 'swap',
+  adjustFontFallback: false
+})
 
 export const metadata: Metadata = {
   title: "LUMORA",
-  description: "Real-Time Video Messaging, Sharing & Streaming",
+  description: "Real-Time Video Recording & Sharing Platform",
   icons: {
     icon: '/logo.svg'
   }
@@ -25,21 +29,23 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={`${manrope.className} bg-[#171717]`}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            disableTransitionOnChange
-          >
-            <ReduxProvider>
-            <ReactQueryProvider>
-                {children}
-                <Analytics />
-                <Toaster />
+      <html lang="en" suppressHydrationWarning>
+        <body className={manrope.className} suppressHydrationWarning>
+          <div className="bg-[#171717]">
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              disableTransitionOnChange
+            >
+              <ReduxProvider>
+                <ReactQueryProvider>
+                  {children}
+                  <Analytics />
+                  <Toaster />
                 </ReactQueryProvider>
-            </ReduxProvider>
-          </ThemeProvider>
+              </ReduxProvider>
+            </ThemeProvider>
+          </div>
         </body>
       </html>
     </ClerkProvider>

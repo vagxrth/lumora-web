@@ -18,7 +18,7 @@ const LandingPageNavBar = (props: Props) => {
           width={40}
           height={40}
         />
-        LUMORA
+        <span className="title">LUMORA</span>
       </div>
       <div className="hidden gap-x-10 items-center lg:flex">
         <Link
