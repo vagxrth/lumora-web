@@ -72,7 +72,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
           width={40}
           alt="logo"
         />
-        <p className="text-2xl font-bold">LUMORA</p>
+        <p className="text-2xl font-bold title">LUMORA</p>
       </div>
       <Select
         defaultValue={activeWorkspaceId}
