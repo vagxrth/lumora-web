@@ -1,7 +1,14 @@
+"use client"
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
+import Link from "next/link";
 
 const Hero = () => {
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing');
+    pricingSection?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section id="home" className="pt-24 pb-16">
       <div className="max-w-7xl mx-auto">
@@ -20,10 +27,17 @@ const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-white hover:bg-white/90 text-black px-8 py-4 text-lg font-semibold rounded-full">
-              Get started for free
-            </Button>
-            <Button variant="outline" size="lg" className="px-8 py-4 text-lg font-semibold rounded-full border-2 border-white text-white hover:bg-white/10">
+            <Link href="/auth/signin">
+              <Button size="lg" className="bg-white hover:bg-white/90 text-black px-8 py-4 text-lg font-semibold rounded-full">
+                Get started for free
+              </Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="px-8 py-4 text-lg font-semibold rounded-full border-2 border-white text-white hover:bg-white/10"
+              onClick={scrollToPricing}
+            >
               Upgrade to Pro
             </Button>
           </div>
