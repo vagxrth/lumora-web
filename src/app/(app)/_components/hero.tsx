@@ -1,6 +1,5 @@
 "use client"
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
 import Link from "next/link";
 
 const Hero = () => {
