@@ -16,7 +16,7 @@ const Hero = () => {
 
           {/* Main Headline */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-            <span className="title text-white">LUMORA</span>
+            <span className="text-white">LUMORA</span>
           </h1>
 
           {/* Subheadline */}

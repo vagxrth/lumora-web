@@ -63,12 +63,6 @@
   }
 }
 
-.title {
-  font-family: 'Romie', serif;
-  font-weight: 100;
-  font-style: italic;
-}
-
 .font-display {
   font-family: var(--font-romie);
 }
