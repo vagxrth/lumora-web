@@ -31,6 +31,7 @@ import InfoBar from '../info-bar'
 import PaymentButton from '../payment-button'
 import { WORKSPACES } from '@/redux/slices/workspaces'
 import CreateWorkspaceModal from '../create-workspace/create-workspace-modal'
+import DeleteWorkspaceModal from '../delete-workspace/delete-workspace-modal'
 
 type Props = {
   activeWorkspaceId: string
@@ -170,36 +171,48 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
         <ul className="max-h-[150px] overflow-auto overflow-x-hidden fade-layer">
           {workspace.workspace.length > 0 &&
             workspace.workspace.map(
-              (item) =>
-                item.type !== 'PERSONAL' && (
+              (item, index) => (
+                <div key={item.id} className="flex items-center justify-between pr-2 group">
                   <SidebarItem
                     href={`/dashboard/${item.id}`}
                     selected={pathName === `/dashboard/${item.id}`}
                     title={item.name}
                     notifications={0}
-                    key={item.name}
                     icon={
                       <WorkspacePlaceholder>
                         {item.name.charAt(0)}
                       </WorkspacePlaceholder>
                     }
                   />
-                )
+                  {index !== 0 && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <DeleteWorkspaceModal workspaceId={item.id} workspaceName={item.name} />
+                    </div>
+                  )}
+                </div>
+              )
             )}
           {workspace.members.length > 0 &&
             workspace.members.map((item) => (
-              <SidebarItem
-                href={`/dashboard/${item.WorkSpace.id}`}
-                selected={pathName === `/dashboard/${item.WorkSpace.id}`}
-                title={item.WorkSpace.name}
-                notifications={0}
-                key={item.WorkSpace.name}
-                icon={
-                  <WorkspacePlaceholder>
-                    {item.WorkSpace.name.charAt(0)}
-                  </WorkspacePlaceholder>
-                }
-              />
+              <div key={item.WorkSpace.id} className="flex items-center justify-between pr-2 group">
+                <SidebarItem
+                  href={`/dashboard/${item.WorkSpace.id}`}
+                  selected={pathName === `/dashboard/${item.WorkSpace.id}`}
+                  title={item.WorkSpace.name}
+                  notifications={0}
+                  icon={
+                    <WorkspacePlaceholder>
+                      {item.WorkSpace.name.charAt(0)}
+                    </WorkspacePlaceholder>
+                  }
+                />
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DeleteWorkspaceModal 
+                    workspaceId={item.WorkSpace.id} 
+                    workspaceName={item.WorkSpace.name} 
+                  />
+                </div>
+              </div>
             ))}
         </ul>
       </nav>

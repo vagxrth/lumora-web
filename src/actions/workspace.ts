@@ -442,3 +442,60 @@ export const howToPost = async () => {
     return { status: 400 }
   }
 }
+
+export const deleteWorkspace = async (workspaceId: string) => {
+  try {
+    const user = await currentUser()
+    if (!user) return { status: 404, message: 'User not found' }
+
+    // Check if user has permission to delete this workspace
+    const workspace = await client.workSpace.findUnique({
+      where: {
+        id: workspaceId,
+        User: {
+          clerkid: user.id
+        }
+      },
+      include: {
+        User: {
+          select: {
+            workspace: {
+              orderBy: {
+                createdAt: 'asc'
+              },
+              take: 1,
+              select: {
+                id: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (!workspace) {
+      return { status: 403, message: 'Not authorized to delete this workspace' }
+    }
+
+    // Check if this is the user's initial workspace
+    const initialWorkspaceId = workspace.User?.workspace[0]?.id
+    if (workspaceId === initialWorkspaceId) {
+      return { 
+        status: 403, 
+        message: 'Cannot delete your initial workspace' 
+      }
+    }
+
+    // Delete workspace and all related content
+    await client.workSpace.delete({
+      where: {
+        id: workspaceId
+      }
+    })
+
+    return { status: 200, message: 'Workspace deleted successfully' }
+  } catch (error) {
+    console.error('Error deleting workspace:', error)
+    return { status: 500, message: 'Failed to delete workspace' }
+  }
+}
