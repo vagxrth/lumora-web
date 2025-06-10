@@ -39,7 +39,9 @@ const DeleteFolderModal = ({ folderId, folderName }: DeleteFolderModalProps) => 
         setIsOpen(false)
         queryClient.invalidateQueries({ queryKey: ['workspace-folders'] })
         // Redirect to workspace page
-        router.push(`/dashboard/${response.data.workspaceId}`)
+        if ('workspaceId' in response.data) {
+          router.push(`/dashboard/${response.data.workspaceId}`)
+        }
       } else {
         toast({
           variant: "destructive",
