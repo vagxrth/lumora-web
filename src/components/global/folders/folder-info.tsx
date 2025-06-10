@@ -8,6 +8,7 @@ import { Pencil } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useMutationData } from '@/hooks/useMutationData'
 import Loader from '../loader'
+import { toast } from '@/hooks/use-toast'
 
 type Props = {
   folderId: string
@@ -19,10 +20,20 @@ const FolderInfo = ({ folderId }: Props) => {
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const handleError = () => {
+    toast({
+      variant: "destructive",
+      title: "Error renaming folder",
+      description: "Please try again later."
+    })
+    setIsEditing(false)
+  }
+
   const { mutate, isPending } = useMutationData(
     ['rename-folder'],
     (data: { name: string }) => renameFolders(folderId, data.name),
-    'folder-info'
+    'folder-info',
+    handleError
   )
 
   const handleRename = () => {
@@ -33,6 +44,9 @@ const FolderInfo = ({ folderId }: Props) => {
     if (inputRef.current && inputRef.current.value) {
       mutate({ name: inputRef.current.value })
       setIsEditing(false)
+      toast({
+        title: "Folder renamed successfully"
+      })
     }
   }
 
