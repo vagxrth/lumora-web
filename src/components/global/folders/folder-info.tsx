@@ -54,6 +54,9 @@ const FolderInfo = ({ folderId }: Props) => {
     if (e.key === 'Enter') {
       handleSave()
     } else if (e.key === 'Escape') {
+      if (inputRef.current) {
+        inputRef.current.value = folder.name
+      }
       setIsEditing(false)
     }
   }
