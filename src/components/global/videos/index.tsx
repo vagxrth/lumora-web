@@ -22,17 +22,17 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
   const { status: videosStatus, data: videos } = videoData as VideosProps
 
   return (
-    <div className="flex flex-col gap-4 mt-4">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <VideoRecorderDuotone />
-          <h2 className="text-[#BdBdBd] text-xl">Videos</h2>
+          <h2 className="text-[#BDBDBD] text-xl">Videos</h2>
         </div>
       </div>
       <section
         className={cn(
           videosStatus !== 200
-            ? 'p-5'
+            ? 'flex justify-center items-center'
             : 'grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
         )}
       >
@@ -45,7 +45,7 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
             />
           ))
         ) : (
-          <p className="text-[#BDBDBD]"> No videos in workspace</p>
+          <p className="text-[#BDBDBD] text-center">No videos in workspace</p>
         )}
       </section>
     </div>
