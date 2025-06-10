@@ -3,7 +3,6 @@ import {
   getWorkspaceFolders
 } from '@/actions/workspace'
 import CreateFolders from '@/components/global/create-folders'
-import CreateWorkspace from '@/components/global/create-workspace'
 import Folders from '@/components/global/folders'
 import {
   dehydrate,
@@ -35,7 +34,6 @@ const Page = async ({ params }: Props) => {
     <HydrationBoundary state={dehydrate(query)}>
       <div className="mt-6">
         <div className="flex justify-end gap-x-3">
-          <CreateWorkspace />
           <CreateFolders workspaceId={workspaceId} />
         </div>
         <Folders workspaceId={workspaceId} />

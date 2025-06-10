@@ -30,12 +30,14 @@ const page = async ({ params }: Props) => {
 
   return (
     <HydrationBoundary state={dehydrate(query)}>
-      <FolderInfo folderId={folderId} />
-      <Videos
-        workspaceId={workspaceId}
-        folderId={folderId}
-        videosKey="folder-videos"
-      />
+      <div className="flex flex-col gap-12 py-8">
+        <FolderInfo folderId={folderId} />
+        <Videos
+          workspaceId={workspaceId}
+          folderId={folderId}
+          videosKey="folder-videos"
+        />
+      </div>
     </HydrationBoundary>
   )
 }
