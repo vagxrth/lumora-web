@@ -25,6 +25,18 @@ const DeleteWorkspaceModal = ({ workspaceId, workspaceName }: DeleteWorkspaceMod
   const [isDeleting, setIsDeleting] = useState(false)
   const queryClient = useQueryClient()
 
+import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { useRouter, usePathname } from 'next/navigation'
+
+const DeleteWorkspaceModal = ({ workspaceId, workspaceName }: DeleteWorkspaceModalProps) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const queryClient = useQueryClient()
+  const router = useRouter()
+  const pathname = usePathname()
+
   const handleDelete = async () => {
     try {
       setIsDeleting(true)
@@ -34,6 +46,11 @@ const DeleteWorkspaceModal = ({ workspaceId, workspaceName }: DeleteWorkspaceMod
         toast.success(response.message)
         setIsOpen(false)
         queryClient.invalidateQueries({ queryKey: ['user-workspaces'] })
+        
+        // Navigate away if deleting the currently active workspace
+        if (pathname.includes(workspaceId)) {
+          router.push('/dashboard')
+        }
       } else {
         toast.error(response.message)
       }
@@ -43,6 +60,7 @@ const DeleteWorkspaceModal = ({ workspaceId, workspaceName }: DeleteWorkspaceMod
       setIsDeleting(false)
     }
   }
+}
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
