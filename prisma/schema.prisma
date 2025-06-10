@@ -47,6 +47,16 @@ model Comment {
   createdAt DateTime  @default(now())
 }
 
+model PaymentHistory {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscription  Subscription      @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String          @db.Uuid
+  planType      SUBSCRIPTION_PLAN
+  amount        Float
+  billingPeriod String          // "monthly" or "annual"
+  createdAt     DateTime         @default(now())
+}
+
 model Subscription {
   id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   User       User?             @relation(fields: [userId], references: [id])
@@ -55,6 +65,7 @@ model Subscription {
   plan       SUBSCRIPTION_PLAN @default(FREE)
   updatedAt  DateTime          @default(now())
   customerId String?           @unique
+  payments   PaymentHistory[]
 }
 
 model Media {

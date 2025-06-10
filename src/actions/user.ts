@@ -166,10 +166,27 @@ export const searchUsers = async (query: string) => {
   }
 }
 
-export const getPaymentInfo = async () => {
+type PaymentHistoryItem = {
+  planType: 'PRO' | 'FREE'
+  amount: number
+  billingPeriod: string
+  createdAt: string
+}
+
+type PaymentData = {
+  data?: {
+    subscription?: {
+      plan: 'PRO' | 'FREE'
+      payments: PaymentHistoryItem[]
+    }
+  }
+  status: number
+}
+
+export const getPaymentInfo = async (): Promise<PaymentData> => {
   try {
     const user = await currentUser()
-    if (!user) return { status: 404 }
+    if (!user) return { status: 404, data: undefined }
 
     const payment = await client.user.findUnique({
       where: {
@@ -177,15 +194,42 @@ export const getPaymentInfo = async () => {
       },
       select: {
         subscription: {
-          select: { plan: true },
+          select: { 
+            plan: true,
+            payments: {
+              orderBy: {
+                createdAt: 'desc'
+              },
+              select: {
+                planType: true,
+                amount: true,
+                billingPeriod: true,
+                createdAt: true
+              }
+            }
+          },
         },
       },
     })
-    if (payment) {
-      return { status: 200, data: payment }
+    
+    if (payment?.subscription) {
+      return { 
+        status: 200, 
+        data: {
+          subscription: {
+            plan: payment.subscription.plan as 'FREE' | 'PRO',
+            payments: payment.subscription.payments.map(p => ({
+              ...p,
+              planType: p.planType as 'FREE' | 'PRO',
+              createdAt: p.createdAt.toISOString()
+            }))
+          }
+        }
+      }
     }
+    return { status: 404, data: undefined }
   } catch (error) {
-    return { status: 400 }
+    return { status: 400, data: undefined }
   }
 }
 
@@ -477,6 +521,13 @@ export const completeSubscription = async (session_id: string) => {
               data: {
                 customerId: session.customer as string,
                 plan: 'PRO',
+                payments: {
+                  create: {
+                    planType: 'PRO',
+                    amount: session.amount_total ? session.amount_total / 100 : 29,
+                    billingPeriod: session.amount_total === 26900 ? 'annual' : 'monthly'
+                  }
+                }
               },
             },
           },
