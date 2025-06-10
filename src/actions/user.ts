@@ -504,12 +504,23 @@ export const acceptInvite = async (inviteId: string) => {
   }
 }
 
+const getBillingPeriodFromSession = (session: Stripe.Checkout.Session): 'annual' | 'monthly' => {
+  const lineItems = session.line_items?.data || []
+  for (const item of lineItems) {
+    const interval = item.price?.recurring?.interval
+    if (interval === 'year') return 'annual'
+  }
+  return 'monthly'
+}
+
 export const completeSubscription = async (session_id: string) => {
   try {
     const user = await currentUser()
     if (!user) return { status: 404 }
 
-    const session = await stripe.checkout.sessions.retrieve(session_id)
+    const session = await stripe.checkout.sessions.retrieve(session_id, {
+      expand: ['line_items.data.price.recurring']
+    })
     if (session) {
       const customer = await client.user.update({
         where: {
@@ -525,7 +536,7 @@ export const completeSubscription = async (session_id: string) => {
                   create: {
                     planType: 'PRO',
                     amount: session.amount_total ? session.amount_total / 100 : 29,
-                    billingPeriod: session.amount_total === 26900 ? 'annual' : 'monthly'
+                    billingPeriod: getBillingPeriodFromSession(session)
                   }
                 }
               },

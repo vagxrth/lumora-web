@@ -76,7 +76,7 @@ export type WorkspaceProps = {
       views: number
       createdAt: Date
       processing: boolean
-      summery: string
+      summary: string
     }
     author: boolean
   }

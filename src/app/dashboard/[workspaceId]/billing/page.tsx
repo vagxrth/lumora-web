@@ -19,9 +19,7 @@ type PaymentData = {
   status: number
 }
 
-type Props = {}
-
-const BillingPage = async (props: Props) => {
+const BillingPage = async () => {
   const payment: PaymentData = await getPaymentInfo()
 
   return (
