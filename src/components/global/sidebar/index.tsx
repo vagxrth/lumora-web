@@ -78,7 +78,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
         defaultValue={activeWorkspaceId}
         onValueChange={onChangeActiveWorkspace}
       >
-        <SelectTrigger className="mt-16 text-neutral-400 bg-transparent">
+        <SelectTrigger className="mt-16 text-neutral-400 bg-transparent focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0">
           <SelectValue placeholder="Select a workspace"></SelectValue>
         </SelectTrigger>
         <SelectContent className="bg-[#111111] backdrop-blur-xl">
