@@ -511,19 +511,23 @@ export const deleteFolder = async (folderId: string) => {
       return { status: 401, data: { message: 'Unauthorized' } }
     }
 
-    // First get the folder and verify user's permission
+    // First get the folder with its workspace and user info
     const folder = await client.folder.findFirst({
       where: {
-        id: folderId,
-        WorkSpace: {
-          User: {
-            clerkid: user.id
-          }
-        }
+        id: folderId
       },
       select: {
         id: true,
         workSpaceId: true,
+        WorkSpace: {
+          select: {
+            User: {
+              select: {
+                clerkid: true
+              }
+            }
+          }
+        },
         videos: {
           select: {
             source: true
@@ -533,44 +537,44 @@ export const deleteFolder = async (folderId: string) => {
     })
 
     if (!folder) {
+      return { status: 404, data: { message: 'Folder not found' } }
+    }
+
+    // Verify user has permission to delete this folder
+    if (folder.WorkSpace?.User?.clerkid !== user.id) {
       return { status: 403, data: { message: 'Not authorized to delete this folder' } }
     }
 
     // Start a transaction to ensure atomicity
     return await client.$transaction(async (tx) => {
-      try {
-        // Delete all videos in the folder
-        if (folder.videos && folder.videos.length > 0) {
-          // First delete video files from storage
-          const videoSources = folder.videos.map((video: { source: string }) => video.source)
-          // TODO: Add your external storage cleanup here
-          // Example: await Promise.all(videoSources.map(source => deleteFromStorage(source)))
+      // Delete all videos in the folder
+      if (folder.videos && folder.videos.length > 0) {
+        // First delete video files from storage
+        const videoSources = folder.videos.map((video: { source: string }) => video.source)
+        // TODO: Add your external storage cleanup here
+        // Example: await Promise.all(videoSources.map(source => deleteFromStorage(source)))
 
-          // Then delete video records from database
-          await tx.video.deleteMany({
-            where: {
-              folderId: folderId
-            }
-          })
-        }
-
-        // Delete the folder itself
-        await tx.folder.delete({
+        // Then delete video records from database
+        await tx.video.deleteMany({
           where: {
-            id: folderId
+            folderId: folderId
           }
         })
+      }
 
-        return {
-          status: 200,
-          data: {
-            message: 'Folder and all its videos deleted successfully',
-            workspaceId: folder.workSpaceId
-          }
+      // Delete the folder itself
+      await tx.folder.delete({
+        where: {
+          id: folderId
         }
-      } catch (error) {
-        // Transaction will automatically rollback
-        throw error
+      })
+
+      return {
+        status: 200,
+        data: {
+          message: 'Folder and all its videos deleted successfully',
+          workspaceId: folder.workSpaceId
+        }
       }
     })
   } catch (error) {
