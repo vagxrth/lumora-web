@@ -449,37 +449,34 @@ export const deleteWorkspace = async (workspaceId: string) => {
     if (!user) return { status: 404, message: 'User not found' }
 
     // Check if user has permission to delete this workspace
-    const workspace = await client.workSpace.findUnique({
+    const workspace = await client.workSpace.findFirst({
       where: {
         id: workspaceId,
         User: {
           clerkid: user.id
         }
       },
-      include: {
-        User: {
-          select: {
-            workspace: {
-              orderBy: {
-                createdAt: 'asc'
-              },
-              take: 1,
-              select: {
-                id: true
-              }
-            }
-          }
-        }
-      }
+      select: { id: true }
     })
 
     if (!workspace) {
       return { status: 403, message: 'Not authorized to delete this workspace' }
     }
 
-    // Check if this is the user's initial workspace
-    const initialWorkspaceId = workspace.User?.workspace[0]?.id
-    if (workspaceId === initialWorkspaceId) {
+    // Check if this is the user's initial workspace (first created)
+    const initialWorkspace = await client.workSpace.findFirst({
+      where: {
+        User: {
+          clerkid: user.id
+        }
+      },
+      orderBy: {
+        createdAt: 'asc'
+      },
+      select: { id: true }
+    })
+    
+    if (workspaceId === initialWorkspace?.id) {
       return { 
         status: 403, 
         message: 'Cannot delete your initial workspace' 
@@ -496,6 +493,12 @@ export const deleteWorkspace = async (workspaceId: string) => {
     return { status: 200, message: 'Workspace deleted successfully' }
   } catch (error) {
     console.error('Error deleting workspace:', error)
+    
+    // Handle specific Prisma errors
+    if (error instanceof Error && error.message.includes('Foreign key constraint')) {
+      return { status: 409, message: 'Cannot delete workspace with existing content' }
+    }
+    
     return { status: 500, message: 'Failed to delete workspace' }
   }
 }
