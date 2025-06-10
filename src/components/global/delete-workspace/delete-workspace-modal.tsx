@@ -14,21 +14,12 @@ import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useRouter, usePathname } from 'next/navigation'
 
 interface DeleteWorkspaceModalProps {
   workspaceId: string
   workspaceName: string
 }
-
-const DeleteWorkspaceModal = ({ workspaceId, workspaceName }: DeleteWorkspaceModalProps) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const queryClient = useQueryClient()
-
-import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { useRouter, usePathname } from 'next/navigation'
 
 const DeleteWorkspaceModal = ({ workspaceId, workspaceName }: DeleteWorkspaceModalProps) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -60,7 +51,6 @@ const DeleteWorkspaceModal = ({ workspaceId, workspaceName }: DeleteWorkspaceMod
       setIsDeleting(false)
     }
   }
-}
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
