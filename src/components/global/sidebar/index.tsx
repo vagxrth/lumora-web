@@ -30,6 +30,7 @@ import GlobalCard from '../global-card'
 import InfoBar from '../info-bar'
 import PaymentButton from '../payment-button'
 import { WORKSPACES } from '@/redux/slices/workspaces'
+import CreateWorkspaceModal from '../create-workspace/create-workspace-modal'
 
 type Props = {
   activeWorkspaceId: string
@@ -159,6 +160,10 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
               : 'No Workspaces'}
           </p>
         </div>
+      )}
+
+      {workspace.subscription?.plan === 'PRO' && (
+        <CreateWorkspaceModal />
       )}
 
       <nav className="w-full">

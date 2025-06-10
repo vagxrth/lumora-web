@@ -6,7 +6,7 @@ import useZodForm from './useZodForm'
 export const useCreateWorkspace = () => {
   const { mutate, isPending } = useMutationData(
     ['create-workspace'],
-    (data: { name: string }) => createWorkspace(data.name),
+    (data: { name: string, type: 'PERSONAL' | 'PUBLIC' }) => createWorkspace(data.name, data.type),
     'user-workspaces'
   )
 
