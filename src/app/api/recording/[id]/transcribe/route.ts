@@ -20,7 +20,7 @@ export async function POST(
     data: {
       title: content.title,
       description: content.summary,
-      summery: body.transcript,
+      summary: body.transcript,
     },
   })
   if (transcribed) {
