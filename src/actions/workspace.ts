@@ -502,3 +502,91 @@ export const deleteWorkspace = async (workspaceId: string) => {
     return { status: 500, message: 'Failed to delete workspace' }
   }
 }
+
+export const deleteFolder = async (folderId: string) => {
+  try {
+    // Get current user for authorization
+    const user = await currentUser()
+    if (!user) {
+      return { status: 401, data: { message: 'Unauthorized' } }
+    }
+
+    // First get the folder with its workspace and user info
+    const folder = await client.folder.findFirst({
+      where: {
+        id: folderId
+      },
+      select: {
+        id: true,
+        workSpaceId: true,
+        WorkSpace: {
+          select: {
+            User: {
+              select: {
+                clerkid: true
+              }
+            }
+          }
+        },
+        videos: {
+          select: {
+            source: true
+          }
+        }
+      }
+    })
+
+    if (!folder) {
+      return { status: 404, data: { message: 'Folder not found' } }
+    }
+
+    // Verify user has permission to delete this folder
+    if (folder.WorkSpace?.User?.clerkid !== user.id) {
+      return { status: 403, data: { message: 'Not authorized to delete this folder' } }
+    }
+
+    // Start a transaction to ensure atomicity
+    return await client.$transaction(async (tx) => {
+      // Delete all videos in the folder
+      if (folder.videos && folder.videos.length > 0) {
+        // First delete video files from storage
+        const videoSources = folder.videos.map((video: { source: string }) => video.source)
+        // TODO: Add your external storage cleanup here
+        // Example: await Promise.all(videoSources.map(source => deleteFromStorage(source)))
+
+        // Then delete video records from database
+        await tx.video.deleteMany({
+          where: {
+            folderId: folderId
+          }
+        })
+      }
+
+      // Delete the folder itself
+      await tx.folder.delete({
+        where: {
+          id: folderId
+        }
+      })
+
+      return {
+        status: 200,
+        data: {
+          message: 'Folder and all its videos deleted successfully',
+          workspaceId: folder.workSpaceId
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Error deleting folder:', error)
+    if (error instanceof Error) {
+      return { 
+        status: 500, 
+        data: { 
+          message: error.message || 'Failed to delete folder and its contents' 
+        } 
+      }
+    }
+    return { status: 500, data: { message: 'Oops! something went wrong' } }
+  }
+}
