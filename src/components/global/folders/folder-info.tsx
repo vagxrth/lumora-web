@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { useMutationData } from '@/hooks/useMutationData'
 import Loader from '../loader'
 import { toast } from '@/hooks/use-toast'
+import DeleteFolderModal from './delete-folder-modal'
 
 type Props = {
   folderId: string
@@ -79,12 +80,15 @@ const FolderInfo = ({ folderId }: Props) => {
             ) : (
               <>
                 <h2 className="text-[#BDBDBD] text-3xl font-medium">{folder.name}</h2>
-                <button 
-                  onClick={handleRename}
-                  className="p-2 hover:bg-neutral-800 rounded-full transition-colors"
-                >
-                  <Pencil className="w-4 h-4 text-neutral-400" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={handleRename}
+                    className="p-2 hover:bg-neutral-800 rounded-full transition-colors"
+                  >
+                    <Pencil className="w-4 h-4 text-neutral-400" />
+                  </button>
+                  <DeleteFolderModal folderId={folderId} folderName={folder.name} />
+                </div>
               </>
             )}
           </div>

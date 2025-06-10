@@ -502,3 +502,51 @@ export const deleteWorkspace = async (workspaceId: string) => {
     return { status: 500, message: 'Failed to delete workspace' }
   }
 }
+
+export const deleteFolder = async (folderId: string) => {
+  try {
+    // First get the folder to check if it exists and get its workspaceId
+    const folder = await client.folder.findUnique({
+      where: {
+        id: folderId,
+      },
+      select: {
+        workSpaceId: true,
+        videos: {
+          select: {
+            source: true
+          }
+        }
+      }
+    })
+
+    if (!folder) {
+      return { status: 400, data: { message: 'Folder does not exist' } }
+    }
+
+    // Delete all videos in the folder first
+    await client.video.deleteMany({
+      where: {
+        folderId: folderId
+      }
+    })
+
+    // Then delete the folder itself
+    await client.folder.delete({
+      where: {
+        id: folderId,
+      }
+    })
+    
+    return { 
+      status: 200, 
+      data: { 
+        message: 'Folder and all its videos deleted successfully',
+        workspaceId: folder.workSpaceId 
+      }
+    }
+  } catch (error) {
+    console.error('Error deleting folder:', error)
+    return { status: 500, data: { message: 'Oops! something went wrong' } }
+  }
+}
