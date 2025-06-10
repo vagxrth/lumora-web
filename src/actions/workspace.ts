@@ -156,7 +156,7 @@ export const getWorkSpaces = async () => {
   }
 }
 
-export const createWorkspace = async (name: string) => {
+export const createWorkspace = async (name: string, type: 'PERSONAL' | 'PUBLIC') => {
   try {
     const user = await currentUser()
     if (!user) return { status: 404 }
@@ -182,7 +182,7 @@ export const createWorkspace = async (name: string) => {
           workspace: {
             create: {
               name,
-              type: 'PUBLIC',
+              type,
             },
           },
         },
