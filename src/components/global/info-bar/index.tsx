@@ -8,9 +8,7 @@ import { Search, UploadIcon } from 'lucide-react'
 import React from 'react'
 import '@/styles/animations.css'
 
-type Props = {}
-
-const InfoBar = (props: Props) => {
+const InfoBar = () => {
   return (
     <header className="pl-20 md:pl-[265px] fixed p-4 w-full flex items-center justify-between gap-4">
       <div className="flex gap-4 justify-center items-center border-2 rounded-full px-4 w-full max-w-lg">
@@ -19,7 +17,7 @@ const InfoBar = (props: Props) => {
           className="text-[#707070]"
         />
         <Input
-          className="bg-transparent border-none !placeholder-neutral-500"
+          className="bg-transparent border-none !placeholder-neutral-500 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
           placeholder="Search for people, projects, tags & folders"
         />
       </div>
