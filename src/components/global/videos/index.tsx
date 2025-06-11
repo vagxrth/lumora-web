@@ -3,9 +3,31 @@ import { getAllUserVideos } from '@/actions/workspace'
 import VideoRecorderDuotone from '@/components/icons/video-recorder-duotone'
 import { useQueryData } from '@/hooks/useQueryData'
 import { cn } from '@/lib/utils'
-import { VideosProps } from '@/types/index.type'
 import React from 'react'
 import VideoCard from './video-card'
+import { Loader } from 'lucide-react'
+
+type VideoData = {
+  id: string
+  title: string | null
+  createdAt: Date
+  source: string
+  processing: boolean
+  Folder: {
+    id: string
+    name: string
+  } | null
+  User: {
+    firstname: string | null
+    lastname: string | null
+    image: string | null
+  } | null
+}
+
+type VideoResponse = {
+  status: number
+  data?: VideoData[]
+}
 
 type Props = {
   folderId: string
@@ -14,12 +36,33 @@ type Props = {
 }
 
 const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
-  
-  const { data: videoData } = useQueryData([videosKey], () =>
+  const { data: videoData, isPending } = useQueryData<VideoResponse>([`workspace-videos-${workspaceId}`], () =>
     getAllUserVideos(folderId)
   )
 
-  const { status: videosStatus, data: videos } = videoData as VideosProps
+  const renderContent = () => {
+    if (isPending) {
+      return (
+        <div className="flex justify-center items-center w-full">
+          <Loader className="w-6 h-6 text-neutral-400 animate-spin" />
+        </div>
+      )
+    }
+
+    if (!videoData || videoData.status !== 200 || !videoData.data) {
+      return (
+        <p className="text-neutral-400 text-center">No videos in workspace</p>
+      )
+    }
+
+    return videoData.data.map((video: VideoData) => (
+      <VideoCard
+        key={video.id}
+        workspaceId={workspaceId}
+        {...video}
+      />
+    ))
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -31,22 +74,12 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
       </div>
       <section
         className={cn(
-          videosStatus !== 200
-            ? 'flex justify-center items-center'
+          (!videoData || videoData.status !== 200)
+            ? 'flex justify-center items-center min-h-[200px]'
             : 'grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
         )}
       >
-        {videosStatus === 200 ? (
-          videos.map((video) => (
-            <VideoCard
-              key={video.id}
-              workspaceId={workspaceId}
-              {...video}
-            />
-          ))
-        ) : (
-          <p className="text-[#BDBDBD] text-center">No videos in workspace</p>
-        )}
+        {renderContent()}
       </section>
     </div>
   )
