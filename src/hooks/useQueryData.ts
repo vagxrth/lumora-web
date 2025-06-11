@@ -5,12 +5,12 @@ import {
     useQuery,
   } from '@tanstack/react-query'
   
-  export const useQueryData = (
+  export const useQueryData = <T = any>(
     queryKey: QueryKey,
-    queryFn: QueryFunction,
+    queryFn: QueryFunction<T>,
     enabled?: Enabled
   ) => {
-    const { data, isPending, isFetched, refetch, isFetching } = useQuery({
+    const { data, isPending, isFetched, refetch, isFetching } = useQuery<T>({
       queryKey,
       queryFn,
     })

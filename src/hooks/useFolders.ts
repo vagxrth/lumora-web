@@ -4,8 +4,10 @@ import { getWorkspaceFolders, moveVideoLocation } from '@/actions/workspace'
 import useZodForm from './useZodForm'
 import { moveVideoSchema } from '@/components/forms/change-video-location/schema'
 import { useAppSelector } from '@/redux/store'
+import { useQueryClient } from '@tanstack/react-query'
 
 export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
+  const queryClient = useQueryClient()
   //get state redux
   const { folders } = useAppSelector((state: any) => state.FolderReducer)
   const { workspaces } = useAppSelector((state: any) => state.WorkSpaceReducer)
@@ -30,9 +32,19 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
   //use mutation data optimisc
   const { mutate, isPending } = useMutationData(
     ['change-video-location'],
-    (data: { folder_id: string; workspace_id: string }) =>
-      moveVideoLocation(videoId, data.workspace_id, data.folder_id)
+    async (data: { folder_id: string; workspace_id: string }) => {
+      const response = await moveVideoLocation(videoId, data.workspace_id, data.folder_id)
+      if (response.status === 200) {
+        // Invalidate queries for both source and destination workspaces
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: [`workspace-videos-${currentWorkspace}`] }),
+          queryClient.invalidateQueries({ queryKey: [`workspace-videos-${data.workspace_id}`] })
+        ])
+      }
+      return response
+    }
   )
+
   //usezodform
   const { errors, onFormSubmit, watch, register } = useZodForm(
     moveVideoSchema,
