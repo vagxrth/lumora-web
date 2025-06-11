@@ -57,11 +57,17 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
   const { data: count } = notifications as NotificationProps
 
   const onChangeActiveWorkspace = async (value: string) => {
-    // Invalidate queries before navigation
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['workspace-folders'] }),
-      queryClient.invalidateQueries({ queryKey: ['user-videos'] })
-    ])
+    try {
+      // Invalidate queries before navigation
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['workspace-folders'] }),
+        queryClient.invalidateQueries({ queryKey: ['user-videos'] })
+      ])
+    } catch (error) {
+      // Log error but continue with navigation
+      console.error('Failed to invalidate queries:', error)
+    }
+    // Continue with navigation regardless of query invalidation success/failure
     router.push(`/dashboard/${value}`)
   }
   const currentWorkspace = workspace.workspace.find(
