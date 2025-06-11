@@ -286,7 +286,7 @@ export const moveVideoLocation = async (
         workSpaceId,
       },
     })
-    if (location) return { status: 200, data: 'folder changed successfully' }
+    if (location) return { status: 200, data: 'Folder changed successfully' }
     return { status: 404, data: 'workspace/folder not found' }
   } catch (error) {
     return { status: 500, data: 'Oops! something went wrong' }
@@ -456,7 +456,14 @@ export const deleteWorkspace = async (workspaceId: string) => {
           clerkid: user.id
         }
       },
-      select: { id: true }
+      select: { 
+        id: true,
+        folders: {
+          select: {
+            id: true
+          }
+        }
+      }
     })
 
     if (!workspace) {
@@ -483,11 +490,23 @@ export const deleteWorkspace = async (workspaceId: string) => {
       }
     }
 
-    // Delete workspace and all related content
-    await client.workSpace.delete({
-      where: {
-        id: workspaceId
+    // Delete workspace and all related content in a transaction
+    await client.$transaction(async (tx) => {
+      // First delete all folders in the workspace
+      if (workspace.folders && workspace.folders.length > 0) {
+        await tx.folder.deleteMany({
+          where: {
+            workSpaceId: workspaceId
+          }
+        })
       }
+
+      // Then delete the workspace itself
+      await tx.workSpace.delete({
+        where: {
+          id: workspaceId
+        }
+      })
     })
 
     return { status: 200, message: 'Workspace deleted successfully' }
