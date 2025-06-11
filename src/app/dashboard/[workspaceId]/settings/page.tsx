@@ -33,53 +33,64 @@ const SettingsPage = () => {
   }
 
   return (
-    <div>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-        <div className="lg:col-span-4 flex lg:flex-row flex-col items-start gap-5">
-          <div
-            className={cn(
-              'rounded-2xl overflow-hidden cursor-pointer border-4 border-transparent',
-              theme == 'system' && 'border-purple-800'
-            )}
-            onClick={() => setTheme('system')}
-          >
-            <SystemMode />
-          </div>
-          <div
-            className={cn(
-              'rounded-2xl overflow-hidden cursor-pointer border-4 border-transparent',
-              theme == 'light' && 'border-purple-800'
-            )}
-            onClick={() => setTheme('light')}
-          >
-            <LightMode />
-          </div>
-          <div
-            className={cn(
-              'rounded-2xl overflow-hidden cursor-pointer border-4 border-transparent',
-              theme == 'dark' && 'border-purple-800'
-            )}
-            onClick={() => setTheme('dark')}
-          >
-            <DarkMode />
+    <div className="space-y-12">
+      <div>
+        <h2 className="text-2xl font-bold">Theme</h2>
+        <p className="text-muted-foreground mt-2 mb-6">
+          Choose your preferred theme mode for the application interface.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+          <div className="lg:col-span-4 flex lg:flex-row flex-col items-start gap-6">
+            <div
+              className={cn(
+                'rounded-2xl overflow-hidden cursor-pointer border-4 border-transparent transition-all hover:opacity-90',
+                theme == 'system' && 'border-purple-800'
+              )}
+              onClick={() => setTheme('system')}
+            >
+              <SystemMode />
+            </div>
+            <div
+              className={cn(
+                'rounded-2xl overflow-hidden cursor-pointer border-4 border-transparent transition-all hover:opacity-90',
+                theme == 'light' && 'border-purple-800'
+              )}
+              onClick={() => setTheme('light')}
+            >
+              <LightMode />
+            </div>
+            <div
+              className={cn(
+                'rounded-2xl overflow-hidden cursor-pointer border-4 border-transparent transition-all hover:opacity-90',
+                theme == 'dark' && 'border-purple-800'
+              )}
+              onClick={() => setTheme('dark')}
+            >
+              <DarkMode />
+            </div>
           </div>
         </div>
       </div>
-      <h2 className="text-2xl font-bold mt-4">Video Sharing Settings</h2>
-      <p className="text-muted-foreground">
-        Enabling this feature will send you notifications when someone watched
-        your video for the first time. This feature can help during client
-        outreach.
-      </p>
-      <Label className="flex items-center gap-x-3 mt-4 text-md">
-        Enable First View
-        <Switch
-          onCheckedChange={switchState}
-          disabled={firstView === undefined}
-          checked={firstView}
-          onClick={() => setFirstView(!firstView)}
-        />
-      </Label>
+
+      <div className="h-px bg-neutral-800 w-full" />
+
+      <div>
+        <h2 className="text-2xl font-bold">Video Sharing Settings</h2>
+        <p className="text-muted-foreground mt-2 mb-6">
+          Enabling this feature will send you notifications when someone watched
+          your video for the first time. This feature can help during client
+          outreach.
+        </p>
+        <div className="flex items-center gap-x-4">
+          <span className="text-md">Enable First View</span>
+          <Switch
+            onCheckedChange={switchState}
+            disabled={firstView === undefined}
+            checked={firstView}
+            onClick={() => setFirstView(!firstView)}
+          />
+        </div>
+      </div>
     </div>
   )
 }
