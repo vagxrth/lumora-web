@@ -492,7 +492,22 @@ export const deleteWorkspace = async (workspaceId: string) => {
 
     // Delete workspace and all related content in a transaction
     await client.$transaction(async (tx) => {
-      // First delete all folders in the workspace
+      // First delete all videos in the workspace
+      // This includes videos directly in workspace (null folderId) and those in folders
+      await tx.video.deleteMany({
+        where: {
+          OR: [
+            { workSpaceId: workspaceId },
+            {
+              Folder: {
+                workSpaceId: workspaceId
+              }
+            }
+          ]
+        }
+      })
+
+      // Then delete all folders in the workspace
       if (workspace.folders && workspace.folders.length > 0) {
         await tx.folder.deleteMany({
           where: {
@@ -501,7 +516,7 @@ export const deleteWorkspace = async (workspaceId: string) => {
         })
       }
 
-      // Then delete the workspace itself
+      // Finally delete the workspace itself
       await tx.workSpace.delete({
         where: {
           id: workspaceId
