@@ -32,6 +32,7 @@ import PaymentButton from '../payment-button'
 import { WORKSPACES } from '@/redux/slices/workspaces'
 import CreateWorkspaceModal from '../create-workspace/create-workspace-modal'
 import DeleteWorkspaceModal from '../delete-workspace/delete-workspace-modal'
+import { useQueryClient } from '@tanstack/react-query'
 
 type Props = {
   activeWorkspaceId: string
@@ -42,6 +43,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
   const router = useRouter()
   const pathName = usePathname()
   const dispatch = useDispatch()
+  const queryClient = useQueryClient()
 
   const { data, isFetched } = useQueryData(['user-workspaces'], getWorkSpaces)
   const menuItems = MENU_ITEMS(activeWorkspaceId)
@@ -54,7 +56,10 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
   const { data: workspace } = data as WorkspaceProps
   const { data: count } = notifications as NotificationProps
 
-  const onChangeActiveWorkspace = (value: string) => {
+  const onChangeActiveWorkspace = async (value: string) => {
+    // Invalidate queries before navigation
+    await queryClient.invalidateQueries({ queryKey: ['workspace-folders'] })
+    await queryClient.invalidateQueries({ queryKey: ['user-videos'] })
     router.push(`/dashboard/${value}`)
   }
   const currentWorkspace = workspace.workspace.find(
