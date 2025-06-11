@@ -58,8 +58,10 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
 
   const onChangeActiveWorkspace = async (value: string) => {
     // Invalidate queries before navigation
-    await queryClient.invalidateQueries({ queryKey: ['workspace-folders'] })
-    await queryClient.invalidateQueries({ queryKey: ['user-videos'] })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['workspace-folders'] }),
+      queryClient.invalidateQueries({ queryKey: ['user-videos'] })
+    ])
     router.push(`/dashboard/${value}`)
   }
   const currentWorkspace = workspace.workspace.find(
