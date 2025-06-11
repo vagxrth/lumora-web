@@ -10,7 +10,7 @@ import {
   type MutationResponse = {
     status: number
     data?: any
-  }
+  } | undefined
   
   export const useMutationData = <TData = any, TVariables = any>(
     mutationKey: MutationKey,

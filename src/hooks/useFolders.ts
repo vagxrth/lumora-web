@@ -47,7 +47,7 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
     (data) => moveVideoLocation(videoId, data.workspace_id, data.folder_id || ''),
     undefined,
     async (response, variables) => {
-      if (response.status === 200) {
+      if (response?.status === 200) {
         await Promise.all([
           // Invalidate workspace videos for both source and destination
           queryClient.invalidateQueries({ queryKey: [`workspace-videos-${currentWorkspace}`] }),

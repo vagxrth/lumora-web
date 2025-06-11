@@ -11,17 +11,18 @@ export const useVideoComment = (videoId: string, commentId?: string) => {
     status: number
     data: { id: string; image: string }
   }
+
   const { isPending, mutate } = useMutationData(
     ['new-comment'],
     (data: { comment: string }) =>
       createCommentAndReply(user.id, data.comment, videoId, commentId),
-    'video-comments',
-    () => reset()
+    'video-comments'
   )
 
-  const { register, onFormSubmit, errors, reset } = useZodForm(
+  const { register, onFormSubmit, errors } = useZodForm(
     createCommentSchema,
     mutate
   )
+  
   return { register, errors, onFormSubmit, isPending }
 }
