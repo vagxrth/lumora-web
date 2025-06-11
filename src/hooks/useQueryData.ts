@@ -7,8 +7,7 @@ import {
   
   export const useQueryData = <T = any>(
     queryKey: QueryKey,
-    queryFn: QueryFunction<T>,
-    enabled?: Enabled
+    queryFn: QueryFunction<T>
   ) => {
     const { data, isPending, isFetched, refetch, isFetching } = useQuery<T>({
       queryKey,

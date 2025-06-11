@@ -18,6 +18,8 @@ const CardMenu = ({
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false)
 
+  if (!currentWorkspace) return null
+
   return (
     <Modal
       className="flex items-center cursor-pointer gap-x-2"

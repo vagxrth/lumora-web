@@ -6,6 +6,18 @@ import { moveVideoSchema } from '@/components/forms/change-video-location/schema
 import { useAppSelector } from '@/redux/store'
 import { useQueryClient } from '@tanstack/react-query'
 
+type MoveVideoData = {
+  folder_id?: string
+  workspace_id: string
+}
+
+type MoveVideoResponse = {
+  status: number
+  data: {
+    message: string
+  }
+}
+
 export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
   const queryClient = useQueryClient()
   //get state redux
@@ -30,18 +42,22 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
   >(undefined)
 
   //use mutation data optimisc
-  const { mutate, isPending } = useMutationData(
+  const { mutate, isPending } = useMutationData<MoveVideoResponse, MoveVideoData>(
     ['change-video-location'],
-    async (data: { folder_id: string; workspace_id: string }) => {
-      const response = await moveVideoLocation(videoId, data.workspace_id, data.folder_id)
+    (data) => moveVideoLocation(videoId, data.workspace_id, data.folder_id || ''),
+    undefined,
+    async (response, variables) => {
       if (response.status === 200) {
-        // Invalidate queries for both source and destination workspaces
         await Promise.all([
+          // Invalidate workspace videos for both source and destination
           queryClient.invalidateQueries({ queryKey: [`workspace-videos-${currentWorkspace}`] }),
-          queryClient.invalidateQueries({ queryKey: [`workspace-videos-${data.workspace_id}`] })
+          queryClient.invalidateQueries({ queryKey: [`workspace-videos-${variables.workspace_id}`] }),
+          // Invalidate folder info to update video counts
+          queryClient.invalidateQueries({ queryKey: ['folder-info'] }),
+          // Invalidate workspace folders to update folder video counts
+          queryClient.invalidateQueries({ queryKey: ['workspace-folders'] })
         ])
       }
-      return response
     }
   )
 
@@ -49,7 +65,7 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
   const { errors, onFormSubmit, watch, register } = useZodForm(
     moveVideoSchema,
     mutate,
-    { folder_id: null, workspace_id: currentWorkspace }
+    { folder_id: undefined, workspace_id: currentWorkspace }
   )
 
   //fetchfolders with a use effeect
