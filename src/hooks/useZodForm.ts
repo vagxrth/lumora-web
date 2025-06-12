@@ -5,7 +5,7 @@ import { UseMutateFunction } from '@tanstack/react-query'
 
 export default function useZodForm<T extends z.ZodType<any, any>, TData = any>(
   schema: T,
-  mutate: UseMutateFunction<any, Error, z.infer<T>, unknown>,
+  mutate: UseMutateFunction<TData, Error, z.infer<T>, unknown>,
   defaultValues?: DefaultValues<z.infer<T>>
 ) {
   const {
@@ -13,6 +13,7 @@ export default function useZodForm<T extends z.ZodType<any, any>, TData = any>(
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
   } = useForm<z.infer<T>>({
     resolver: zodResolver(schema),
     defaultValues,
@@ -27,5 +28,6 @@ export default function useZodForm<T extends z.ZodType<any, any>, TData = any>(
     errors,
     onFormSubmit,
     watch,
+    reset,
   }
 }

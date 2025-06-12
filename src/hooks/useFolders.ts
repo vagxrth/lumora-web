@@ -5,17 +5,19 @@ import useZodForm from './useZodForm'
 import { moveVideoSchema } from '@/components/forms/change-video-location/schema'
 import { useAppSelector } from '@/redux/store'
 import { useQueryClient } from '@tanstack/react-query'
-
-type MoveVideoData = {
-  folder_id?: string
-  workspace_id: string
-}
+import { z } from 'zod'
+import { toast } from 'sonner'
 
 type MoveVideoResponse = {
   status: number
   data: {
     message: string
   }
+}
+
+// Extended type to include current workspace for proper invalidation
+type MoveVideoVariables = z.infer<typeof moveVideoSchema> & {
+  currentWorkspace: string
 }
 
 export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
@@ -42,7 +44,7 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
   >(undefined)
 
   //use mutation data optimisc
-  const { mutate, isPending } = useMutationData<MoveVideoResponse, MoveVideoData>(
+  const { mutate, isPending } = useMutationData<MoveVideoResponse, MoveVideoVariables>(
     ['change-video-location'],
     (data) => moveVideoLocation(videoId, data.workspace_id, data.folder_id || ''),
     undefined,
@@ -50,7 +52,7 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
       if (response?.status === 200) {
         await Promise.all([
           // Invalidate workspace videos for both source and destination
-          queryClient.invalidateQueries({ queryKey: [`workspace-videos-${currentWorkspace}`] }),
+          queryClient.invalidateQueries({ queryKey: [`workspace-videos-${variables.currentWorkspace}`] }),
           queryClient.invalidateQueries({ queryKey: [`workspace-videos-${variables.workspace_id}`] }),
           // Invalidate folder info to update video counts
           queryClient.invalidateQueries({ queryKey: ['folder-info'] }),
@@ -58,13 +60,29 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
           queryClient.invalidateQueries({ queryKey: ['workspace-folders'] })
         ])
       }
+    },
+    async (error, variables) => {
+      // Handle error by showing detailed notification
+      toast('Failed to move video', {
+        description: `Could not move video to ${variables.workspace_id}. Please try again.`,
+      })
+      
+      // Optionally refresh the current workspace data to ensure consistency
+      await queryClient.invalidateQueries({ 
+        queryKey: [`workspace-videos-${variables.currentWorkspace}`] 
+      })
     }
   )
+
+  // Custom mutate function that includes currentWorkspace
+  const moveVideo = (data: z.infer<typeof moveVideoSchema>) => {
+    mutate({ ...data, currentWorkspace })
+  }
 
   //usezodform
   const { errors, onFormSubmit, watch, register } = useZodForm(
     moveVideoSchema,
-    mutate,
+    moveVideo,
     { folder_id: undefined, workspace_id: currentWorkspace }
   )
 

@@ -37,7 +37,7 @@ type Props = {
 
 const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
   const { data: videoData, isPending } = useQueryData<VideoResponse>([`workspace-videos-${workspaceId}`], () =>
-    getAllUserVideos(workspaceId)
+    getAllUserVideos(folderId)
   )
 
   const renderContent = () => {

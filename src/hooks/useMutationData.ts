@@ -1,6 +1,7 @@
 import {
     MutationFunction,
     MutationKey,
+    QueryKey,
     useMutation,
     useMutationState,
     useQueryClient,
@@ -15,8 +16,9 @@ import {
   export const useMutationData = <TData = any, TVariables = any>(
     mutationKey: MutationKey,
     mutationFn: MutationFunction<MutationResponse, TVariables>,
-    queryKey?: string,
-    onSuccess?: (response: MutationResponse, variables: TVariables) => Promise<void> | void
+    queryKey?: string | QueryKey,
+    onSuccess?: (response: MutationResponse, variables: TVariables) => Promise<void> | void,
+    onError?: (error: Error, variables: TVariables) => Promise<void> | void
   ) => {
     const client = useQueryClient()
     const { mutate, isPending } = useMutation({
@@ -34,10 +36,19 @@ import {
           }
         )
       },
+      onError(error, variables) {
+        if (onError) {
+          onError(error, variables)
+        }
+
+        return toast('Error', {
+          description: 'An error occurred while processing your request.',
+        })
+      },
       onSettled: async () => {
         if (queryKey) {
           return await client.invalidateQueries({
-            queryKey: [queryKey],
+            queryKey: typeof queryKey === 'string' ? [queryKey] : queryKey,
             exact: true,
           })
         }

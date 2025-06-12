@@ -29,7 +29,7 @@ const Folder = ({ id, name, optimistic, count }: Props) => {
   //optimistic
   const { mutate, isPending } = useMutationData(
     ['rename-folders'],
-    (data: { name: string }) => renameFolders(id, data.name),
+    (data: { name: string; id: string }) => renameFolders(data.id, data.name),
     'workspace-folders',
     Renamed
   )
@@ -50,7 +50,7 @@ const Folder = ({ id, name, optimistic, count }: Props) => {
   const updateFolderName = (e: React.FocusEvent<HTMLInputElement>) => {
     if (inputRef.current) {
       if (inputRef.current.value) {
-        mutate({ name: inputRef.current.value })
+        mutate({ name: inputRef.current.value, id })
       } else Renamed()
     }
   }
