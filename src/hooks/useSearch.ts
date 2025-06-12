@@ -39,7 +39,6 @@ export const useSearch = (key: string, type: 'USERS') => {
         if (users.status === 200) setOnUsers(users.data)
       }
     },
-    false
   )
 
   useEffect(() => {

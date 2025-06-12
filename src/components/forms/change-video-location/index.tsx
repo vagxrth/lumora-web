@@ -9,7 +9,7 @@ import React from 'react'
 type Props = {
   videoId: string
   currentFolder?: string
-  currentWorkSpace?: string
+  currentWorkSpace: string
   currentFolderName?: string
   onSuccess?: () => void
 }
@@ -29,15 +29,20 @@ const ChangeVideoLocation = ({
     workspaces,
     isFetching,
     isFolders,
-  } = useMoveVideos(videoId, currentWorkSpace!)
+  } = useMoveVideos(videoId, currentWorkSpace)
 
   const folder = folders.find((f: any) => f.id === currentFolder)
   const workspace = workspaces.find((f: any) => f.id === currentWorkSpace)
 
   const onFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await onSubmit(e)
-    onSuccess?.()
+    try {
+      await onSubmit(e)
+      onSuccess?.()
+    } catch (error) {
+      // Re-throw the error to surface it properly
+      throw error
+    }
   }
 
   return (

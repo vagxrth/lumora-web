@@ -1,24 +1,33 @@
 import {
     MutationFunction,
     MutationKey,
+    QueryKey,
     useMutation,
     useMutationState,
     useQueryClient,
   } from '@tanstack/react-query'
   import { toast } from 'sonner'
   
-  export const useMutationData = (
+  type MutationResponse = {
+    status: number
+    data?: any
+  } | undefined
+  
+  export const useMutationData = <TData = any, TVariables = any>(
     mutationKey: MutationKey,
-    mutationFn: MutationFunction<any, any>,
-    queryKey?: string,
-    onSuccess?: () => void
+    mutationFn: MutationFunction<MutationResponse, TVariables>,
+    queryKey?: string | QueryKey,
+    onSuccess?: (response: MutationResponse, variables: TVariables) => Promise<void> | void,
+    onError?: (error: Error, variables: TVariables) => Promise<void> | void
   ) => {
     const client = useQueryClient()
     const { mutate, isPending } = useMutation({
       mutationKey,
       mutationFn,
-      onSuccess(data) {
-        if (onSuccess) onSuccess()
+      onSuccess(data, variables) {
+        if (onSuccess) {
+          onSuccess(data, variables)
+        }
   
         return toast(
           data?.status === 200 || data?.status === 201 ? 'Success' : 'Error',
@@ -27,11 +36,22 @@ import {
           }
         )
       },
-      onSettled: async () => {
-        return await client.invalidateQueries({
-          queryKey: [queryKey],
-          exact: true,
+      onError(error, variables) {
+        if (onError) {
+          onError(error, variables)
+        }
+
+        return toast('Error', {
+          description: 'An error occurred while processing your request.',
         })
+      },
+      onSettled: async () => {
+        if (queryKey) {
+          return await client.invalidateQueries({
+            queryKey: typeof queryKey === 'string' ? [queryKey] : queryKey,
+            exact: true,
+          })
+        }
       },
     })
   
