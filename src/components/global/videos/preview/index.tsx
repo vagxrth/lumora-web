@@ -5,13 +5,10 @@ import { VideoProps } from '@/types/index.type'
 import { useRouter } from 'next/navigation'
 import React, { useEffect } from 'react'
 import CopyLink from '../copy-link'
-import RichLink from '../rich-link'
-import { truncateString } from '@/lib/utils'
 import { Download } from 'lucide-react'
 import TabMenu from '../../tabs'
-import AiTools from '../../ai-tools'
 import VideoTranscript from '../../video-transcript'
-import Activities from '../../activities'
+import Comments from '../../comments'
 import EditVideo from '../edit'
 import DeleteVideoModal from '../delete-video-modal'
 
@@ -134,10 +131,6 @@ const VideoPreview = ({ videoId }: Props) => {
                   title={video.title as string}
                   description={video.description as string}
                 />
-                <DeleteVideoModal
-                  videoId={videoId}
-                  videoTitle={video.title as string}
-                />
               </div>
             ) : (
               <></>
@@ -149,32 +142,21 @@ const VideoPreview = ({ videoId }: Props) => {
         </div>
       </div>
       <div className="lg:col-span-1 flex flex-col gap-y-16">
-        <div className="flex justify-end gap-x-3 items-center">
+        <div className="flex justify-end gap-x-6 items-center">
           <CopyLink
             variant="outline"
-            className="rounded-full bg-transparent px-10"
+            className="rounded-full bg-white px-10"
             videoId={videoId}
-          />
-          <RichLink
-            description={truncateString(video.description as string, 150)}
-            id={videoId}
-            source={video.source}
-            title={video.title as string}
           />
           <Download className="text-[#4d4c4c]" />
         </div>
         <div>
           <TabMenu
-            defaultValue="Ai tools"
-            triggers={['Ai tools', 'Transcript', 'Activity']}
+            defaultValue="Transcript"
+            triggers={['Transcript', 'Comments']}
           >
-            <AiTools
-              videoId={videoId}
-              trial={video.User?.trial ?? false}
-              plan={video.User?.subscription?.plan ?? 'FREE'}
-            />
             <VideoTranscript transcript={video.summary ?? ''} />
-            <Activities
+            <Comments
               author={video.User?.firstname ?? 'Anonymous'}
               videoId={videoId}
             />

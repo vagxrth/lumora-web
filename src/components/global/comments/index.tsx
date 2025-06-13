@@ -12,7 +12,7 @@ type Props = {
   videoId: string
 }
 
-const Activities = ({ author, videoId }: Props) => {
+const Comments = ({ author, videoId }: Props) => {
   const { data } = useQueryData(['video-comments'], () =>
     getVideoComments(videoId)
   )
@@ -22,8 +22,8 @@ const Activities = ({ author, videoId }: Props) => {
 
   return (
     <TabsContent
-      value="Activity"
-      className="rounded-xl flex flex-col gap-y-5"
+      value="Comments"
+      className="rounded-xl flex flex-col gap-y-5 px-4 pt-0 pb-4 mt-0"
     >
       <CommentForm
         author={author}
@@ -48,4 +48,4 @@ const Activities = ({ author, videoId }: Props) => {
   )
 }
 
-export default Activities
+export default Comments
