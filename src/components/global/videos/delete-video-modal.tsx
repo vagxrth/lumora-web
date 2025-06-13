@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,21 +19,31 @@ type Props = {
 const DeleteVideoModal = ({ videoId, videoTitle }: Props) => {
   const [isOpen, setIsOpen] = useState(false)
   const { deleteVideo, isPending } = useDeleteVideo(videoId)
+  const wasDeleting = useRef(false)
 
   const handleDelete = () => {
+    wasDeleting.current = true
     deleteVideo({})
   }
 
-  // Close modal when deletion is complete
+  // Close modal only after deletion completes (goes from pending to not pending)
   useEffect(() => {
-    if (!isPending && isOpen) {
+    if (wasDeleting.current && !isPending) {
       // Small delay to show success before closing
       const timer = setTimeout(() => {
         setIsOpen(false)
-      }, 300)
+        wasDeleting.current = false
+      }, 500)
       return () => clearTimeout(timer)
     }
-  }, [isPending, isOpen])
+  }, [isPending])
+
+  // Reset wasDeleting when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      wasDeleting.current = false
+    }
+  }, [isOpen])
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
