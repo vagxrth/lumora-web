@@ -13,7 +13,7 @@ type Props = {
 }
 
 const Comments = ({ author, videoId }: Props) => {
-  const { data } = useQueryData(['video-comments'], () =>
+  const { data } = useQueryData(['video-comments', videoId], () =>
     getVideoComments(videoId)
   )
 
