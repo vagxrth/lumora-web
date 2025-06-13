@@ -58,28 +58,30 @@ export type WorkspaceProps = {
   }
   
   export type VideoProps = {
-    status: number
-    data: {
-      User: {
-        firstname: string | null
-        lastname: string | null
-        image: string | null
-        clerkId: string
-        trial: boolean
-        subscription: {
-          plan: 'PRO' | 'FREE'
-        } | null
+  status: number
+  data: {
+    User: {
+      firstname: string | null
+      lastname: string | null
+      image: string | null
+      clerkId: string
+      trial: boolean
+      subscription: {
+        plan: 'PRO' | 'FREE'
       } | null
-      title: string | null
-      description: string | null
-      source: string
-      views: number
-      createdAt: Date
-      processing: boolean
-      summary: string
-    }
-    author: boolean
+    } | null
+    title: string | null
+    description: string | null
+    source: string
+    views: number
+    createdAt: Date
+    processing: boolean
+    summary: string
+    workSpaceId: string | null
+    folderId: string | null
   }
+  author: boolean
+}
   
   export type CommentRepliesProps = {
     id: string

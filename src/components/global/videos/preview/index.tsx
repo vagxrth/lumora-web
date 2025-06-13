@@ -13,6 +13,7 @@ import AiTools from '../../ai-tools'
 import VideoTranscript from '../../video-transcript'
 import Activities from '../../activities'
 import EditVideo from '../edit'
+import DeleteVideoModal from '../delete-video-modal'
 
 type Props = {
   videoId: string
@@ -21,28 +22,67 @@ type Props = {
 const VideoPreview = ({ videoId }: Props) => {
   const router = useRouter()
 
-  const { data } = useQueryData(['preview-video'], () =>
+  const { data, isPending } = useQueryData(['preview-video'], () =>
     getPreviewVideo(videoId)
   )
 
   const notifyFirstView = async () => await sendEmailForFirstView(videoId)
 
+  // Always call hooks at the top level - handle navigation side effect
+  useEffect(() => {
+    if (data && (data as VideoProps).status !== 200) {
+      router.push('/')
+    }
+  }, [data, router])
+
+  // Always call hooks at the top level - handle first view notification
+  useEffect(() => {
+    if (data && (data as VideoProps).status === 200) {
+      const { data: video } = data as VideoProps
+      if (video && video.views === 0) {
+        notifyFirstView()
+      }
+    }
+    return () => {
+      if (data && (data as VideoProps).status === 200) {
+        notifyFirstView()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data])
+
+  // Handle loading state
+  if (isPending) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
+      </div>
+    )
+  }
+
+  // Handle undefined data or invalid response
+  if (!data) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <p className="text-white text-lg">Loading video...</p>
+      </div>
+    )
+  }
+
   const { data: video, status, author } = data as VideoProps
-  if (status !== 200) router.push('/')
+
+  // Return early if status is not 200 or video is undefined
+  if (status !== 200 || !video) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <p className="text-white text-lg">Video not found</p>
+      </div>
+    )
+  }
 
   const daysAgo = Math.floor(
     (new Date().getTime() - video.createdAt.getTime()) / (24 * 60 * 60 * 1000)
   )
-
-  useEffect(() => {
-    if (video.views === 0) {
-      notifyFirstView()
-    }
-    return () => {
-      notifyFirstView()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 lg:py-10 overflow-y-auto gap-5">
@@ -51,11 +91,17 @@ const VideoPreview = ({ videoId }: Props) => {
           <div className="flex gap-x-5 items-start justify-between">
             <h2 className="text-white text-4xl font-bold">{video.title}</h2>
             {author ? (
-              <EditVideo
-                videoId={videoId}
-                title={video.title as string}
-                description={video.description as string}
-              />
+              <div className="flex gap-x-2">
+                <EditVideo
+                  videoId={videoId}
+                  title={video.title as string}
+                  description={video.description as string}
+                />
+                <DeleteVideoModal
+                  videoId={videoId}
+                  videoTitle={video.title as string}
+                />
+              </div>
             ) : (
               <></>
             )}
@@ -82,11 +128,17 @@ const VideoPreview = ({ videoId }: Props) => {
           <div className="flex gap-x-5 items-center justify-between">
             <p className="text-[#BDBDBD] text-semibold">Description</p>
             {author ? (
-              <EditVideo
-                videoId={videoId}
-                title={video.title as string}
-                description={video.description as string}
-              />
+              <div className="flex gap-x-2">
+                <EditVideo
+                  videoId={videoId}
+                  title={video.title as string}
+                  description={video.description as string}
+                />
+                <DeleteVideoModal
+                  videoId={videoId}
+                  videoTitle={video.title as string}
+                />
+              </div>
             ) : (
               <></>
             )}

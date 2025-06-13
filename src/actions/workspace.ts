@@ -309,6 +309,8 @@ export const getPreviewVideo = async (videoId: string) => {
         processing: true,
         views: true,
         summary: true,
+        workSpaceId: true,
+        folderId: true,
         User: {
           select: {
             firstname: true,
@@ -426,6 +428,55 @@ export const editVideoInfo = async (
     return { status: 404, data: 'Video not found' }
   } catch (error) {
     return { status: 400 }
+  }
+}
+
+export const deleteVideo = async (videoId: string) => {
+  try {
+    const user = await currentUser()
+    if (!user) return { status: 404, data: 'User not found' }
+
+    // First get the video to check ownership and get workspace info for redirection
+    const video = await client.video.findUnique({
+      where: { id: videoId },
+      select: {
+        id: true,
+        source: true,
+        workSpaceId: true,
+        folderId: true,
+        User: {
+          select: {
+            clerkid: true,
+          },
+        },
+      },
+    })
+
+    if (!video) {
+      return { status: 404, data: 'Video not found' }
+    }
+
+    // Check if user owns the video
+    if (video.User?.clerkid !== user.id) {
+      return { status: 403, data: 'Not authorized to delete this video' }
+    }
+
+    // Delete the video from database
+    await client.video.delete({
+      where: { id: videoId },
+    })
+
+    // TODO: Add external storage cleanup here if needed
+    // Example: await deleteFromStorage(video.source)
+
+    return { 
+      status: 200, 
+      data: 'Video deleted successfully',
+      workspaceId: video.workSpaceId,
+      folderId: video.folderId
+    }
+  } catch (error) {
+    return { status: 500, data: 'Failed to delete video' }
   }
 }
 
