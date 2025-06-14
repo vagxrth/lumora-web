@@ -36,7 +36,7 @@ type Props = {
 }
 
 const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
-  const { data: videoData, isPending } = useQueryData<VideoResponse>([`workspace-videos-${workspaceId}`], () =>
+  const { data: videoData, isPending } = useQueryData<VideoResponse>([videosKey], () =>
     getAllUserVideos(folderId)
   )
 
@@ -51,7 +51,7 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
 
     if (!videoData || videoData.status !== 200 || !videoData.data) {
       return (
-        <p className="text-neutral-400 text-center">No videos in workspace</p>
+        <p className="text-neutral-400 text-center">No Videos</p>
       )
     }
 
