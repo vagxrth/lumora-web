@@ -8,13 +8,15 @@ type Props = {
   videoId: string
   title: string
   description: string
+  onSuccess?: () => void
 }
 
-const EditVideoForm = ({ description, title, videoId }: Props) => {
+const EditVideoForm = ({ description, title, videoId, onSuccess }: Props) => {
   const { errors, isPending, onFormSubmit, register } = useEditVideo(
     videoId,
     title,
-    description
+    description,
+    onSuccess
   )
 
   return (

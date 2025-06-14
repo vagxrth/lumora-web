@@ -36,8 +36,9 @@ type Props = {
 }
 
 const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
-  const { data: videoData, isPending } = useQueryData<VideoResponse>([videosKey], () =>
-    getAllUserVideos(folderId)
+  const { data: videoData, isPending, isFetching } = useQueryData<VideoResponse>(
+    [videosKey, folderId],               
+    () => getAllUserVideos(folderId)
   )
 
   const renderContent = () => {
@@ -70,13 +71,17 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
         <div className="flex items-center gap-4">
           <VideoRecorderDuotone />
           <h2 className="text-[#BDBDBD] text-xl">Videos</h2>
+          {isFetching && !isPending && (
+            <Loader className="w-4 h-4 text-neutral-400 animate-spin" />
+          )}
         </div>
       </div>
       <section
         className={cn(
           (!videoData || videoData.status !== 200)
             ? 'flex justify-center items-center min-h-[200px]'
-            : 'grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
+            : 'grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5',
+          isFetching && !isPending && 'opacity-70 pointer-events-none'
         )}
       >
         {renderContent()}

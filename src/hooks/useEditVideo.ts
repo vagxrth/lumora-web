@@ -6,13 +6,19 @@ import { editVideoInfo } from '@/actions/workspace'
 export const useEditVideo = (
   videoId: string,
   title: string,
-  description: string
+  description: string,
+  onSuccess?: () => void
 ) => {
   const { mutate, isPending } = useMutationData(
     ['edit-video'],
     (data: { title: string; description: string }) =>
       editVideoInfo(videoId, data.title, data.description),
-    'preview-video'
+    'preview-video',
+    (response) => {
+      if (response?.status === 200 && onSuccess) {
+        onSuccess()
+      }
+    }
   )
   const { errors, onFormSubmit, register } = useZodForm(
     editVideoInfoSchema,
