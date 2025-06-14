@@ -54,6 +54,10 @@ export const useMoveVideos = (videoId: string, currentWorkspace: string) => {
           // Invalidate workspace videos for both source and destination
           queryClient.invalidateQueries({ queryKey: [`workspace-videos-${variables.currentWorkspace}`] }),
           queryClient.invalidateQueries({ queryKey: [`workspace-videos-${variables.workspace_id}`] }),
+          // Invalidate folder videos - this is crucial for folder pages to update immediately
+          queryClient.invalidateQueries({ queryKey: ['folder-videos'] }),
+          // Invalidate user videos - this is crucial for workspace-level videos to update immediately
+          queryClient.invalidateQueries({ queryKey: ['user-videos'] }),
           // Invalidate folder info to update video counts
           queryClient.invalidateQueries({ queryKey: ['folder-info'] }),
           // Invalidate workspace folders to update folder video counts

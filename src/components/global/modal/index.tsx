@@ -30,10 +30,10 @@ import {
         >
           {trigger}
         </DialogTrigger>
-        <DialogContent className="bg-[#111111] border-neutral-800">
+        <DialogContent className="bg-[#1D1D1D] border-[#252525]">
           <DialogHeader>
-            <DialogTitle className="text-white">{title}</DialogTitle>
-            <DialogDescription className="text-neutral-400">{description}</DialogDescription>
+            <DialogTitle className="text-[#9D9D9D] text-md">{title}</DialogTitle>
+            <DialogDescription className="text-[#707070]">{description}</DialogDescription>
           </DialogHeader>
           {children}
         </DialogContent>

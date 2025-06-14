@@ -58,7 +58,7 @@ const FormGenerator = ({
       return (
         <Label
           htmlFor={`select-${label}`}
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-2 text-[#9D9D9D]"
         >
           {label && label}
           <select
@@ -92,7 +92,7 @@ const FormGenerator = ({
     case 'textarea':
       return (
         <Label
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-2 text-[#9D9D9D]"
           htmlFor={`input-${label}`}
         >
           {label && label}
