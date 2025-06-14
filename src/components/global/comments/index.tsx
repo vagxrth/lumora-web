@@ -17,7 +17,7 @@ const Comments = ({ author, videoId }: Props) => {
     getVideoComments(videoId)
   )
 
-  const { data: comments } = data as VideoCommentProps
+  const { data: comments } = data || { data: [] }
 
 
   return (
