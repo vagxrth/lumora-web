@@ -1,7 +1,7 @@
 import { Spinner } from '@/components/global/loader/spinner'
 import React from 'react'
 
-const AuthLoading = () => {
+const DashboardLoading = () => {
   return (
     <div className="flex h-screen w-full items-center justify-center">
       <Spinner />
@@ -9,4 +9,4 @@ const AuthLoading = () => {
   )
 }
 
-export default AuthLoading
+export default DashboardLoading
