@@ -18,20 +18,7 @@ export const metadata: Metadata = {
   title: "LUMORA",
   description: "Real-Time Video Recording & Sharing Platform",
   icons: {
-    icon: [
-      {
-        url: '/lumora.png',
-        sizes: '32x32',
-        type: 'image/png',
-      },
-      {
-        url: '/lumora.png',
-        sizes: '16x16',
-        type: 'image/png',
-      }
-    ],
-    apple: '/lumora.png',
-    shortcut: '/lumora.png'
+    icon: '/lumora.png'
   }
 };
 
