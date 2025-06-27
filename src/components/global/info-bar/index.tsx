@@ -3,7 +3,7 @@
 import VideoRecorderIcon from '@/components/icons/video-recorder'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { UserButton } from '@clerk/nextjs'
+import { UserButton } from '@/components/auth/user-button'
 import { Search,  Download } from 'lucide-react'
 import { useState } from 'react'
 import '@/styles/animations.css'

@@ -18,8 +18,11 @@ model User {
   email        String         @unique
   firstname    String?
   lastname     String?
+  name         String?
+  emailVerified Boolean       @default(false)
   createdAt    DateTime       @default(now())
-  clerkid      String         @unique
+  updatedAt    DateTime       @default(now())
+  externalId   String?        @unique
   studio       Media?
   image        String?
   workspace    WorkSpace[]
@@ -32,6 +35,10 @@ model User {
   trial        Boolean        @default(false)
   firstView    Boolean        @default(false)
   comment      Comment[]
+  
+  // Better Auth related fields
+  sessions     Session[]
+  accounts     Account[]
 }
 
 model Comment {
@@ -160,4 +167,44 @@ enum PRESET {
 enum SUBSCRIPTION_PLAN {
   PRO
   FREE
+}
+
+model Session {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now())
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now())
 }

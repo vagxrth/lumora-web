@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { DM_Sans } from 'next/font/google'
 import "./globals.css";
 import { Analytics } from '@vercel/analytics/react';
-import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from '@/components/theme'
 import { Toaster } from 'sonner'
 import ReactQueryProvider from '@/react-query'
@@ -28,26 +27,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={manrope.className} suppressHydrationWarning>
-          <div className="bg-[#171717]">
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              disableTransitionOnChange
-            >
-              <ReduxProvider>
-                <ReactQueryProvider>
-                  {children}
-                  <Analytics />
-                  <Toaster />
-                </ReactQueryProvider>
-              </ReduxProvider>
-            </ThemeProvider>
-          </div>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={manrope.className} suppressHydrationWarning>
+        <div className="bg-[#171717]">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            disableTransitionOnChange
+          >
+            <ReduxProvider>
+              <ReactQueryProvider>
+                {children}
+                <Analytics />
+                <Toaster />
+              </ReactQueryProvider>
+            </ReduxProvider>
+          </ThemeProvider>
+        </div>
+      </body>
+    </html>
   );
 }

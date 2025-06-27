@@ -1,7 +1,7 @@
 'use server'
 
 import { client } from '@/lib/prisma'
-import { currentUser } from '@clerk/nextjs/server'
+import { getCurrentUser, requireAuth } from '@/lib/auth-helpers'
 import nodemailer from 'nodemailer'
 import Stripe from 'stripe'
 
@@ -34,20 +34,20 @@ export const sendEmail = async (
 
 export const onAuthenticateUser = async () => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) {
       return { status: 403 }
     }
 
     const userExist = await client.user.findUnique({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       include: {
         workspace: {
           where: {
             User: {
-              clerkid: user.id,
+              id: user.id,
             },
           },
         },
@@ -57,13 +57,13 @@ export const onAuthenticateUser = async () => {
       return { status: 200, user: userExist }
     }
     
-    const newUser = await client.user.create({
+    // For Better Auth, users are created during OAuth, so we should find them
+    // If user doesn't exist in our app tables, create the related data
+    const newUser = await client.user.update({
+      where: {
+        id: user.id,
+      },
       data: {
-        clerkid: user.id,
-        email: user.emailAddresses[0].emailAddress,
-        firstname: user.firstName,
-        lastname: user.lastName,
-        image: user.imageUrl,
         studio: {
           create: {},
         },
@@ -72,7 +72,7 @@ export const onAuthenticateUser = async () => {
         },
         workspace: {
           create: {
-            name: `${user.firstName}'s Workspace`,
+            name: `${user.name || 'User'}'s Workspace`,
             type: 'PERSONAL',
           },
         },
@@ -81,7 +81,7 @@ export const onAuthenticateUser = async () => {
         workspace: {
           where: {
             User: {
-              clerkid: user.id,
+              id: user.id,
             },
           },
         },
@@ -104,11 +104,11 @@ export const onAuthenticateUser = async () => {
 
 export const getNotifications = async () => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
     const notifications = await client.user.findUnique({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       select: {
         notification: true,
@@ -130,7 +130,7 @@ export const getNotifications = async () => {
 
 export const searchUsers = async (query: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
 
     const users = await client.user.findMany({
@@ -140,7 +140,7 @@ export const searchUsers = async (query: string) => {
           { email: { contains: query } },
           { lastname: { contains: query } },
         ],
-        NOT: [{ clerkid: user.id }],
+        NOT: [{ id: user.id }],
       },
       select: {
         id: true,
@@ -185,12 +185,12 @@ type PaymentData = {
 
 export const getPaymentInfo = async (): Promise<PaymentData> => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404, data: undefined }
 
     const payment = await client.user.findUnique({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       select: {
         subscription: {
@@ -235,13 +235,13 @@ export const getPaymentInfo = async (): Promise<PaymentData> => {
 
 export const enableFirstView = async (state: boolean) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
 
     if (!user) return { status: 404 }
 
     const view = await client.user.update({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       data: {
         firstView: state,
@@ -258,11 +258,11 @@ export const enableFirstView = async (state: boolean) => {
 
 export const getFirstView = async () => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
     const userData = await client.user.findUnique({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       select: {
         firstView: true,
@@ -325,11 +325,11 @@ export const createCommentAndReply = async (
 
 export const getUserProfile = async () => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
     const profileIdAndImage = await client.user.findUnique({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       select: {
         image: true,
@@ -372,11 +372,11 @@ export const inviteMembers = async (
   email: string
 ) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
     const senderInfo = await client.user.findUnique({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       select: {
         id: true,
@@ -408,12 +408,12 @@ export const inviteMembers = async (
 
         await client.user.update({
           where: {
-            clerkid: user.id,
+            id: user.id,
           },
           data: {
             notification: {
               create: {
-                content: `${user.firstName} ${user.lastName} invited ${senderInfo.firstname} into ${workspace.name}`,
+                content: `${user.name || 'User'} invited ${senderInfo.firstname} into ${workspace.name}`,
               },
             },
           },
@@ -448,7 +448,7 @@ export const inviteMembers = async (
 
 export const acceptInvite = async (inviteId: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user)
       return {
         status: 404,
@@ -461,13 +461,13 @@ export const acceptInvite = async (inviteId: string) => {
         workSpaceId: true,
         reciever: {
           select: {
-            clerkid: true,
+            id: true,
           },
         },
       },
     })
 
-    if (user.id !== invitation?.reciever?.clerkid) return { status: 401 }
+    if (!invitation || user.id !== invitation.reciever?.id) return { status: 401 }
     const acceptInvite = client.invite.update({
       where: {
         id: inviteId,
@@ -479,7 +479,7 @@ export const acceptInvite = async (inviteId: string) => {
 
     const updateMember = client.user.update({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       data: {
         members: {
@@ -515,7 +515,7 @@ const getBillingPeriodFromSession = (session: Stripe.Checkout.Session): 'annual'
 
 export const completeSubscription = async (session_id: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
 
     const session = await stripe.checkout.sessions.retrieve(session_id, {
@@ -524,7 +524,7 @@ export const completeSubscription = async (session_id: string) => {
     if (session) {
       const customer = await client.user.update({
         where: {
-          clerkid: user.id,
+          id: user.id,
         },
         data: {
           subscription: {
