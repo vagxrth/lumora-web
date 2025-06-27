@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', "https://lumora-web.vercel.app"]
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || []
 
 const corsOptions = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',

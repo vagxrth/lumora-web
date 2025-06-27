@@ -3,6 +3,24 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { client } from '@/lib/prisma'
 
+// Define the type for the update data object used in Prisma operations
+interface UserUpdateData {
+  subscription?: {
+    create: {
+      plan: 'FREE' | 'PRO'
+    }
+  }
+  workspace?: {
+    create: {
+      name: string
+      type: 'PERSONAL' | 'PUBLIC'
+    }
+  }
+  studio?: {
+    create: Record<string, never> // empty object
+  }
+}
+
 const AuthCallbackPage = async () => {
   try {
     // Get session using Better Auth
@@ -30,7 +48,7 @@ const AuthCallbackPage = async () => {
       
       // If user exists but has no workspace/subscription, create them
       if (userWithData) {
-        const updateData: any = {}
+        const updateData: UserUpdateData = {}
         
         // Create subscription if it doesn't exist
         if (!userWithData.subscription) {
