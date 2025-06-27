@@ -1,6 +1,6 @@
 'use client'
 
-import { authClient } from '@/lib/auth-client'
+import { authClient, Session } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,23 +16,33 @@ import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
 
 export function UserButton() {
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
+    let isMounted = true
+    
     const getSession = async () => {
       try {
         const sessionData = await authClient.getSession()
-        setSession(sessionData.data)
+        if (isMounted) {
+          setSession(sessionData.data)
+        }
       } catch (error) {
         console.error('Error getting session:', error)
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
     
     getSession()
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const handleSignOut = async () => {
