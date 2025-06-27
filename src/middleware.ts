@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "./lib/auth";
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || []
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+]
 
 const corsOptions = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -9,7 +13,23 @@ const corsOptions = {
 
 const protectedRoutes = ['/dashboard', '/payment']
 
-const SESSION_COOKIE_NAME = 'better-auth.session_token'
+/**
+ * Validates the session token by checking with better-auth
+ * @param request - The NextRequest object containing headers and cookies
+ * @returns Promise<boolean> - true if session is valid, false otherwise
+ */
+async function validateSessionToken(request: NextRequest): Promise<boolean> {
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+    
+    return !!session?.user;
+  } catch (error) {
+    console.error('Session validation error:', error);
+    return false;
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') ?? ''
@@ -25,19 +45,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.json({}, { headers: preflightHeaders })
   }
 
-  // Check for session token in cookies (better-auth stores it as "better-auth.session_token")
-  const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  
+  // Validate session token for protected routes and auth redirects
+  const hasValidSession = await validateSessionToken(request);
 
-  // Redirect to sign-in if accessing protected route without session
-  if (isProtectedRoute && !sessionToken) {
+  // Redirect to sign-in if accessing protected route without valid session
+  if (isProtectedRoute && !hasValidSession) {
     return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 
   // Redirect to dashboard if accessing auth pages with valid session
-  if (sessionToken && ["/auth/signin", "/auth/signup"].includes(pathname)) {
+  if (hasValidSession && ["/auth/signin", "/auth/signup"].includes(pathname)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
