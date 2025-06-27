@@ -1,4 +1,8 @@
-export const Google = () => {
+interface GoogleProps {
+  className?: string;
+}
+
+export const Google = ({ className }: GoogleProps) => {
   return (
     <svg
       width="17"
@@ -6,6 +10,7 @@ export const Google = () => {
       viewBox="0 0 17 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={className}
     >
       <g clip-path="url(#clip0_7948_15260)">
         <path

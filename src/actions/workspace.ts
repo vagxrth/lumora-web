@@ -1,7 +1,7 @@
 'use server'
 
 import { client } from '@/lib/prisma'
-import { currentUser } from '@clerk/nextjs/server'
+import { getCurrentUser } from '@/lib/auth-helpers'
 import { sendEmail } from './user'
 import { createClient, OAuthStrategy } from '@wix/sdk'
 import { items } from '@wix/data'
@@ -9,7 +9,7 @@ import axios from 'axios'
 
 export const verifyAccessToWorkspace = async (workspaceId: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 403 }
 
     const isUserInWorkspace = await client.workSpace.findUnique({
@@ -18,14 +18,14 @@ export const verifyAccessToWorkspace = async (workspaceId: string) => {
         OR: [
           {
             User: {
-              clerkid: user.id,
+              id: user.id,
             },
           },
           {
             members: {
               every: {
                 User: {
-                  clerkid: user.id,
+                  id: user.id,
                 },
               },
             },
@@ -70,7 +70,7 @@ export const getWorkspaceFolders = async (workSpaceId: string) => {
 
 export const getAllUserVideos = async (workSpaceId: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
     const videos = await client.video.findMany({
       where: {
@@ -113,13 +113,13 @@ export const getAllUserVideos = async (workSpaceId: string) => {
 
 export const getWorkSpaces = async () => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
 
     if (!user) return { status: 404 }
 
     const workspaces = await client.user.findUnique({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       select: {
         subscription: {
@@ -158,11 +158,11 @@ export const getWorkSpaces = async () => {
 
 export const createWorkspace = async (name: string, type: 'PERSONAL' | 'PUBLIC') => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
     const authorized = await client.user.findUnique({
       where: {
-        clerkid: user.id,
+        id: user.id,
       },
       select: {
         subscription: {
@@ -176,7 +176,7 @@ export const createWorkspace = async (name: string, type: 'PERSONAL' | 'PUBLIC')
     if (authorized?.subscription?.plan === 'PRO') {
       const workspace = await client.user.update({
         where: {
-          clerkid: user.id,
+          id: user.id,
         },
         data: {
           workspace: {
@@ -295,7 +295,7 @@ export const moveVideoLocation = async (
 
 export const getPreviewVideo = async (videoId: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
     const video = await client.video.findUnique({
       where: {
@@ -311,13 +311,13 @@ export const getPreviewVideo = async (videoId: string) => {
         summary: true,
         workSpaceId: true,
         folderId: true,
-        User: {
-          select: {
-            firstname: true,
-            lastname: true,
-            image: true,
-            clerkid: true,
-            trial: true,
+                  User: {
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              image: true,
+              trial: true,
             subscription: {
               select: {
                 plan: true,
@@ -331,7 +331,7 @@ export const getPreviewVideo = async (videoId: string) => {
       return {
         status: 200,
         data: video,
-        author: user.id === video.User?.clerkid ? true : false,
+        author: user.id === video.User?.id ? true : false,
       }
     }
 
@@ -343,10 +343,10 @@ export const getPreviewVideo = async (videoId: string) => {
 
 export const sendEmailForFirstView = async (videoId: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404 }
     const firstViewSettings = await client.user.findUnique({
-      where: { clerkid: user.id },
+      where: { id: user.id },
       select: {
         firstView: true,
       },
@@ -391,7 +391,7 @@ export const sendEmailForFirstView = async (videoId: string) => {
           console.log(error.message)
         } else {
           const notification = await client.user.update({
-            where: { clerkid: user.id },
+            where: { id: user.id },
             data: {
               notification: {
                 create: {
@@ -433,7 +433,7 @@ export const editVideoInfo = async (
 
 export const deleteVideo = async (videoId: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404, data: 'User not found' }
 
     // First get the video to check ownership and get workspace info for redirection
@@ -446,7 +446,7 @@ export const deleteVideo = async (videoId: string) => {
         folderId: true,
         User: {
           select: {
-            clerkid: true,
+            id: true,
           },
         },
       },
@@ -457,7 +457,7 @@ export const deleteVideo = async (videoId: string) => {
     }
 
     // Check if user owns the video
-    if (video.User?.clerkid !== user.id) {
+    if (video.User?.id !== user.id) {
       return { status: 403, data: 'Not authorized to delete this video' }
     }
 
@@ -482,7 +482,7 @@ export const deleteVideo = async (videoId: string) => {
 
 export const deleteWorkspace = async (workspaceId: string) => {
   try {
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) return { status: 404, message: 'User not found' }
 
     // Check if user has permission to delete this workspace
@@ -490,7 +490,7 @@ export const deleteWorkspace = async (workspaceId: string) => {
       where: {
         id: workspaceId,
         User: {
-          clerkid: user.id
+          id: user.id
         }
       },
       select: { 
@@ -511,7 +511,7 @@ export const deleteWorkspace = async (workspaceId: string) => {
     const initialWorkspace = await client.workSpace.findFirst({
       where: {
         User: {
-          clerkid: user.id
+          id: user.id
         }
       },
       orderBy: {
@@ -577,7 +577,7 @@ export const deleteWorkspace = async (workspaceId: string) => {
 export const deleteFolder = async (folderId: string) => {
   try {
     // Get current user for authorization
-    const user = await currentUser()
+    const user = await getCurrentUser()
     if (!user) {
       return { status: 401, data: { message: 'Unauthorized' } }
     }
@@ -592,11 +592,11 @@ export const deleteFolder = async (folderId: string) => {
         workSpaceId: true,
         WorkSpace: {
           select: {
-            User: {
-              select: {
-                clerkid: true
-              }
+                      User: {
+            select: {
+              externalId: true
             }
+          }
           }
         },
         videos: {
@@ -612,7 +612,7 @@ export const deleteFolder = async (folderId: string) => {
     }
 
     // Verify user has permission to delete this folder
-    if (folder.WorkSpace?.User?.clerkid !== user.id) {
+    if (folder.WorkSpace?.User?.externalId !== user.id) {
       return { status: 403, data: { message: 'Not authorized to delete this folder' } }
     }
 

@@ -64,7 +64,7 @@ export type WorkspaceProps = {
       firstname: string | null
       lastname: string | null
       image: string | null
-      clerkId: string
+      externalId: string
       trial: boolean
       subscription: {
         plan: 'PRO' | 'FREE'
@@ -96,7 +96,7 @@ export type WorkspaceProps = {
       firstname: string | null
       lastname: string | null
       createdAt: Date
-      clerkid: string
+      externalId: string | null
       image: string | null
       trial: boolean
       firstView: boolean
@@ -111,7 +111,7 @@ export type WorkspaceProps = {
         firstname: string | null
         lastname: string | null
         createdAt: Date
-        clerkid: string
+        externalId: string | null
         image: string | null
         trial: boolean
         firstView: boolean
