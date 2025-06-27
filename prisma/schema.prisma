@@ -21,7 +21,7 @@ model User {
   name         String?
   emailVerified Boolean       @default(false)
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
   externalId   String?        @unique
   studio       Media?
   image        String?
@@ -70,7 +70,7 @@ model Subscription {
   userId     String?           @unique @db.Uuid
   createdAt  DateTime          @default(now())
   plan       SUBSCRIPTION_PLAN @default(FREE)
-  updatedAt  DateTime          @default(now())
+  updatedAt  DateTime          @default(now()) @updatedAt
   customerId String?           @unique
   payments   PaymentHistory[]
 }
@@ -174,7 +174,7 @@ model Session {
   expiresAt DateTime
   token     String   @unique
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   ipAddress String?
   userAgent String?
   userId    String   @db.Uuid
@@ -194,7 +194,7 @@ model Account {
   scope                 String?
   password              String?
   createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now()) @updatedAt
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
@@ -206,5 +206,5 @@ model Verification {
   value      String
   expiresAt  DateTime
   createdAt  DateTime? @default(now())
-  updatedAt  DateTime? @default(now())
+  updatedAt  DateTime? @default(now()) @updatedAt
 }
