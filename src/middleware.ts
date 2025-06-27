@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000']
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', "https://lumora-web.vercel.app"]
 
 const corsOptions = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -8,6 +8,8 @@ const corsOptions = {
 }
 
 const protectedRoutes = ['/dashboard', '/payment']
+
+const SESSION_COOKIE_NAME = 'better-auth.session_token'
 
 export async function middleware(request: NextRequest) {
   const origin = request.headers.get('origin') ?? ''
@@ -24,7 +26,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check for session token in cookies (better-auth stores it as "better-auth.session_token")
-  const sessionToken = request.cookies.get('better-auth.session_token')?.value;
+  const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
