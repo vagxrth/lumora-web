@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { client } from "./prisma";
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export const auth = betterAuth({
   database: prismaAdapter(client, {
     provider: "postgresql",
@@ -9,19 +11,17 @@ export const auth = betterAuth({
   socialProviders: { 
     google: { 
       clientId: process.env.GOOGLE_CLIENT_ID!, 
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!, 
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!
     } 
   },
-  // Disable email and password authentication
   emailAndPassword: {
     enabled: false,
   },
-  baseURL: process.env.NEXT_PUBLIC_HOST_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined),
+  baseURL: isDev ? 'http://localhost:3000' : process.env.NEXT_PUBLIC_HOST_URL,
   trustedOrigins: [
-    process.env.NEXT_PUBLIC_HOST_URL!,
-    ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000'] : [])
-  ],
-  // Updated to use the new config format
+    ...(isDev ? ['http://localhost:3000'] : []),
+    process.env.NEXT_PUBLIC_HOST_URL,
+  ].filter(Boolean) as string[],
   advanced: {
     database: {
       generateId: false,
