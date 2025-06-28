@@ -592,11 +592,11 @@ export const deleteFolder = async (folderId: string) => {
         workSpaceId: true,
         WorkSpace: {
           select: {
-                      User: {
-            select: {
-              externalId: true
+            User: {
+              select: {
+                id: true
+              }
             }
-          }
           }
         },
         videos: {
@@ -612,7 +612,7 @@ export const deleteFolder = async (folderId: string) => {
     }
 
     // Verify user has permission to delete this folder
-    if (folder.WorkSpace?.User?.externalId !== user.id) {
+    if (folder.WorkSpace?.User?.id !== user.id) {
       return { status: 403, data: { message: 'Not authorized to delete this folder' } }
     }
 
