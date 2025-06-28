@@ -1,22 +1,15 @@
 import { createAuthClient } from "better-auth/react";
 
-// Use localhost in development, production URL otherwise
+// Dynamically determine the base URL based on the current domain
 const getBaseURL = () => {
-  // In development, use localhost
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000';
+  if (typeof window !== 'undefined') {
+    // Client-side: use the current origin
+    return window.location.origin;
   }
-  
-  // In production, use the environment variable
-  const baseURL = process.env.NEXT_PUBLIC_HOST_URL;
-  
-  if (!baseURL) {
-    throw new Error(
-      "NEXT_PUBLIC_HOST_URL is not defined for production environment."
-    );
-  }
-  
-  return baseURL;
+  // Server-side fallback
+  return process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:3000' 
+    : process.env.NEXT_PUBLIC_HOST_URL;
 };
 
 export const authClient = createAuthClient({
