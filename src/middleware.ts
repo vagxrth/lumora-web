@@ -18,7 +18,7 @@ function hasAuthCookies(request: NextRequest): boolean {
   const sessionCookie = request.cookies.get('better-auth.session_token');
   const csrfCookie = request.cookies.get('better-auth.csrf_token');
   
-  return !!(sessionCookie && sessionCookie.value);
+  return !!(sessionCookie?.value && csrfCookie?.value);
 }
 
 export async function middleware(request: NextRequest) {
