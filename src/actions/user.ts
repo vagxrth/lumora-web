@@ -39,65 +39,67 @@ export const onAuthenticateUser = async () => {
       return { status: 403 }
     }
 
-    const userExist = await client.user.findUnique({
+    // First, check if user exists with all required relations
+    const existingUser = await client.user.findUnique({
       where: {
         id: user.id,
       },
       include: {
-        workspace: {
-          where: {
-            User: {
-              id: user.id,
-            },
-          },
-        },
+        workspace: true,
+        subscription: true,
+        studio: true,
       },
     })
-    if (userExist) {
-      return { status: 200, user: userExist }
+
+    // If user exists and has workspace, return them
+    if (existingUser && existingUser.workspace.length > 0) {
+      return { status: 200, user: existingUser }
     }
+
+    // If user exists but doesn't have workspace/subscription/studio, create them
+    if (existingUser) {
+      const updatedUser = await client.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          ...(existingUser.workspace.length === 0 && {
+            workspace: {
+              create: {
+                name: `${user.name || user.email?.split('@')[0] || 'User'}'s Workspace`,
+                type: 'PERSONAL',
+              },
+            },
+          }),
+          ...(!existingUser.subscription && {
+            subscription: {
+              create: {
+                plan: 'FREE',
+              },
+            },
+          }),
+          ...(!existingUser.studio && {
+            studio: {
+              create: {},
+            },
+          }),
+        },
+        include: {
+          workspace: true,
+          subscription: true,
+          studio: true,
+        },
+      })
+      return { status: 201, user: updatedUser }
+    }
+
+    // If user doesn't exist at all (shouldn't happen with Better Auth, but handle it)
+    // Better Auth should have created the user record, so this is a fallback
+    console.warn('User not found in database after Better Auth session. This should not happen.')
+    return { status: 404 }
     
-    // For Better Auth, users are created during OAuth, so we should find them
-    // If user doesn't exist in our app tables, create the related data
-    const newUser = await client.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        studio: {
-          create: {},
-        },
-        subscription: {
-          create: {},
-        },
-        workspace: {
-          create: {
-            name: `${user.name || 'User'}'s Workspace`,
-            type: 'PERSONAL',
-          },
-        },
-      },
-      include: {
-        workspace: {
-          where: {
-            User: {
-              id: user.id,
-            },
-          },
-        },
-        subscription: {
-          select: {
-            plan: true,
-          },
-        },
-      },
-    })
-    if (newUser) {
-      return { status: 201, user: newUser }
-    }
-    return { status: 400 }
   } catch (error) {
-    console.log('🔴 ERROR', error)
+    console.log('🔴 ERROR in onAuthenticateUser:', error)
     return { status: 500 }
   }
 }
