@@ -1,4 +1,5 @@
 import { client } from '@/lib/prisma'
+import { validateApiRequest } from '@/lib/auth-helpers'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(
@@ -6,8 +7,25 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Validate session
+    const validation = await validateApiRequest()
+    if (validation.error) {
+      return NextResponse.json(
+        { error: validation.error }, 
+        { status: validation.status }
+      )
+    }
+
     const body = await req.json()
     const { id } = await params
+
+    // Verify the authenticated user matches the requested user ID
+    if (validation.user.id !== id) {
+      return NextResponse.json(
+        { error: 'Forbidden: Cannot process videos for another user' }, 
+        { status: 403 }
+      )
+    }
 
     const personalworkspaceId = await client.user.findUnique({
       where: {

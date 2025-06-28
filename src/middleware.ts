@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "./lib/auth";
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [
   'http://localhost:3000',
@@ -13,22 +12,13 @@ const corsOptions = {
 
 const protectedRoutes = ['/dashboard', '/payment']
 
-/**
- * Validates the session token by checking with better-auth
- * @param request - The NextRequest object containing headers and cookies
- * @returns Promise<boolean> - true if session is valid, false otherwise
- */
-async function validateSessionToken(request: NextRequest): Promise<boolean> {
-  try {
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
-    
-    return !!session?.user;
-  } catch (error) {
-    console.error('Session validation error:', error);
-    return false;
-  }
+
+function hasAuthCookies(request: NextRequest): boolean {
+  // Check for better-auth session cookies
+  const sessionCookie = request.cookies.get('better-auth.session_token');
+  const csrfCookie = request.cookies.get('better-auth.csrf_token');
+  
+  return !!(sessionCookie?.value && csrfCookie?.value);
 }
 
 export async function middleware(request: NextRequest) {
@@ -48,16 +38,18 @@ export async function middleware(request: NextRequest) {
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   
-  // Validate session token for protected routes and auth redirects
-  const hasValidSession = await validateSessionToken(request);
+  // Check for auth cookies (lightweight check for routing - NOT security validation)
+  // SECURITY: Actual session validation happens in server components and API routes
+  const hasAuthSession = hasAuthCookies(request);
 
-  // Redirect to sign-in if accessing protected route without valid session
-  if (isProtectedRoute && !hasValidSession) {
+  // Basic routing redirects based on cookie presence (UX improvement, not security)
+  // Actual authentication is validated server-side in each protected route/API
+  if (isProtectedRoute && !hasAuthSession) {
     return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 
-  // Redirect to dashboard if accessing auth pages with valid session
-  if (hasValidSession && ["/auth/signin", "/auth/signup"].includes(pathname)) {
+  // Redirect to dashboard if accessing auth pages with auth cookies
+  if (hasAuthSession && ["/auth/signin", "/auth/signup"].includes(pathname)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

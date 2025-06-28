@@ -1,13 +1,30 @@
 import { client } from '@/lib/prisma'
+import { validateApiRequest } from '@/lib/auth-helpers'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log('CALLED')
+  // Validate session
+  const validation = await validateApiRequest()
+  if (validation.error) {
+    return NextResponse.json(
+      { error: validation.error }, 
+      { status: validation.status }
+    )
+  }
+
   const { id } = await params
   const body = await req.json()
+
+  // Verify the authenticated user matches the requested user ID
+  if (validation.user.id !== id) {
+    return NextResponse.json(
+      { error: 'Forbidden: Cannot update studio settings for another user' }, 
+      { status: 403 }
+    )
+  }
 
   const studio = await client.user.update({
     where: {

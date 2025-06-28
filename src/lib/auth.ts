@@ -16,10 +16,15 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: false,
   },
-  trustedOrigins: [process.env.NEXT_PUBLIC_HOST_URL!],
-  // Disable automatic ID generation since we use database-generated UUIDs
+  trustedOrigins: [
+    process.env.NEXT_PUBLIC_HOST_URL!,
+    ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000'] : [])
+  ],
+  // Updated to use the new config format
   advanced: {
-    generateId: false,
+    database: {
+      generateId: false,
+    },
   },
 });
 

@@ -1,6 +1,7 @@
 import {
   getAllUserVideos,
-  getWorkspaceFolders
+  getWorkspaceFolders,
+  verifyAccessToWorkspace
 } from '@/actions/workspace'
 import CreateFolders from '@/components/global/create-folders'
 import Folders from '@/components/global/folders'
@@ -9,6 +10,8 @@ import {
   HydrationBoundary,
   QueryClient,
 } from '@tanstack/react-query'
+import { requireValidSession } from '@/lib/auth-helpers'
+import { redirect } from 'next/navigation'
 
 import React from 'react'
 
@@ -17,7 +20,17 @@ type Props = {
 }
 
 const Page = async ({ params }: Props) => {
+  // Validate session and get user
+  const session = await requireValidSession()
+  
   const { workspaceId } = await params
+  
+  // Verify user has access to this specific workspace
+  const hasAccess = await verifyAccessToWorkspace(workspaceId)
+  if (hasAccess.status !== 200) {
+    redirect('/dashboard') // Redirect to main dashboard if no access
+  }
+  
   const query = new QueryClient()
 
   await query.prefetchQuery({
