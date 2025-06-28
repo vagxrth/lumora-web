@@ -1,4 +1,5 @@
 import { client } from '@/lib/prisma'
+import { validateApiRequest } from '@/lib/auth-helpers'
 import axios from 'axios'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -6,9 +7,26 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Validate session
+  const validation = await validateApiRequest()
+  if (validation.error) {
+    return NextResponse.json(
+      { error: validation.error }, 
+      { status: validation.status }
+    )
+  }
+
   //WIRE UP AI AGENT
   const body = await req.json()
   const { id } = await params
+
+  // Verify the authenticated user owns this video
+  if (validation.user.id !== id) {
+    return NextResponse.json(
+      { error: 'Forbidden: Cannot transcribe videos for another user' }, 
+      { status: 403 }
+    )
+  }
 
   const content = JSON.parse(body.content)
 

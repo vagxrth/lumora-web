@@ -12,11 +12,7 @@ const corsOptions = {
 
 const protectedRoutes = ['/dashboard', '/payment']
 
-/**
- * Checks if user has auth cookies (lightweight session check)
- * @param request - The NextRequest object containing cookies
- * @returns boolean - true if auth cookies are present
- */
+
 function hasAuthCookies(request: NextRequest): boolean {
   // Check for better-auth session cookies
   const sessionCookie = request.cookies.get('better-auth.session_token');
@@ -42,10 +38,12 @@ export async function middleware(request: NextRequest) {
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   
-  // Check for auth cookies (lightweight check to avoid Prisma in Edge Runtime)
+  // Check for auth cookies (lightweight check for routing - NOT security validation)
+  // SECURITY: Actual session validation happens in server components and API routes
   const hasAuthSession = hasAuthCookies(request);
 
-  // Redirect to sign-in if accessing protected route without auth cookies
+  // Basic routing redirects based on cookie presence (UX improvement, not security)
+  // Actual authentication is validated server-side in each protected route/API
   if (isProtectedRoute && !hasAuthSession) {
     return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
