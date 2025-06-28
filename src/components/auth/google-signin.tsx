@@ -16,7 +16,7 @@ export function GoogleSignInButton() {
     try {
       const data = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/auth/callback",
       })
       
       if (data.error) {

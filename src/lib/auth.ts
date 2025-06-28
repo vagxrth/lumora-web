@@ -16,6 +16,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: false,
   },
+  baseURL: process.env.NEXT_PUBLIC_HOST_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined),
   trustedOrigins: [
     process.env.NEXT_PUBLIC_HOST_URL!,
     ...(process.env.NODE_ENV === 'development' ? ['http://localhost:3000'] : [])
