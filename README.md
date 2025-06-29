@@ -9,7 +9,7 @@
 - 👥 **Team Collaboration** - Invite team members and share content
 - 💬 **Comments & Feedback** - Add comments and replies to videos
 - 📊 **Analytics** - Track video views and engagement
-- 🔐 **Secure Authentication** - Powered by Clerk authentication
+- 🔐 **Secure Authentication** - Powered by Better Auth with Google OAuth
 - 💳 **Subscription Management** - Free and Pro plans with Stripe integration
 - 🎨 **Modern UI** - Beautiful interface built with Tailwind CSS and shadcn/ui
 
@@ -18,7 +18,7 @@
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Styling**: Tailwind CSS, shadcn/ui components
 - **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: Clerk
+- **Authentication**: Better Auth
 - **Payments**: Stripe
 - **State Management**: Redux Toolkit
 - **Data Fetching**: TanStack Query (React Query)
@@ -88,12 +88,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## 🔧 Configuration
 
-### Clerk Authentication Setup
+### Better Auth Setup
 
-1. Create an account at [Clerk.dev](https://clerk.dev)
-2. Create a new application
-3. Copy the publishable key and secret key to your `.env` file
-4. Configure the sign-in and sign-up URLs in your Clerk dashboard
+1. Create a Google OAuth application at [Google Cloud Console](https://console.cloud.google.com/)
+2. Configure OAuth consent screen and create credentials
+3. Copy the Client ID and Client Secret to your `.env` file as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+4. Set your authorized redirect URIs to include your app domain + `/api/auth/callback/google`
 
 ### Database Configuration
 
@@ -122,7 +122,7 @@ The easiest way to deploy your Lumora app is to use the [Vercel Platform](https:
 Make sure to:
 - Add all environment variables to your Vercel project settings
 - Set up your production database
-- Configure your Clerk production keys
+- Configure your Google OAuth production keys
 - Set up Stripe webhooks for your production domain
 
 ## 🤝 Contributing
