@@ -23,7 +23,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: false,
   },
-  baseURL: isDev ? 'http://localhost:3000' : process.env.NEXT_PUBLIC_HOST_URL,
+  baseURL: isDev ? 'http://localhost:3000' : (process.env.NEXT_PUBLIC_HOST_URL || 'https://lumora-web.vercel.app'),
   trustedOrigins: [
     ...(isDev ? ['http://localhost:3000'] : []),
     ...trustedDomains,
