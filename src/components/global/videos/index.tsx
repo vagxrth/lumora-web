@@ -44,7 +44,7 @@ const Videos = ({ folderId, videosKey, workspaceId }: Props) => {
   const renderContent = () => {
     if (isPending) {
       return (
-        <div className="flex justify-center items-center w-full">
+        <div className="flex justify-center items-center w-full min-h-[50vh]">
           <Loader className="w-6 h-6 text-neutral-400 animate-spin" />
         </div>
       )
