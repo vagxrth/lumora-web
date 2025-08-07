@@ -156,7 +156,7 @@ export const getWorkSpaces = async () => {
   }
 }
 
-export const createWorkspace = async (name: string) => {
+export const createWorkspace = async (name: string, type: 'PERSONAL' | 'PUBLIC') => {
   try {
     const user = await currentUser()
     if (!user) return { status: 404 }
@@ -182,7 +182,7 @@ export const createWorkspace = async (name: string) => {
           workspace: {
             create: {
               name,
-              type: 'PUBLIC',
+              type,
             },
           },
         },
@@ -286,7 +286,7 @@ export const moveVideoLocation = async (
         workSpaceId,
       },
     })
-    if (location) return { status: 200, data: 'folder changed successfully' }
+    if (location) return { status: 200, data: 'Folder changed successfully' }
     return { status: 404, data: 'workspace/folder not found' }
   } catch (error) {
     return { status: 500, data: 'Oops! something went wrong' }
@@ -308,7 +308,9 @@ export const getPreviewVideo = async (videoId: string) => {
         description: true,
         processing: true,
         views: true,
-        summery: true,
+        summary: true,
+        workSpaceId: true,
+        folderId: true,
         User: {
           select: {
             firstname: true,
@@ -429,16 +431,233 @@ export const editVideoInfo = async (
   }
 }
 
-export const howToPost = async () => {
+export const deleteVideo = async (videoId: string) => {
   try {
-    const response = await axios.get(process.env.CLOUD_WAYS_POST as string)
-    if (response.data) {
-      return {
-        title: response.data[0].title.rendered,
-        content: response.data[0].content.rendered,
-      }
+    const user = await currentUser()
+    if (!user) return { status: 404, data: 'User not found' }
+
+    // First get the video to check ownership and get workspace info for redirection
+    const video = await client.video.findUnique({
+      where: { id: videoId },
+      select: {
+        id: true,
+        source: true,
+        workSpaceId: true,
+        folderId: true,
+        User: {
+          select: {
+            clerkid: true,
+          },
+        },
+      },
+    })
+
+    if (!video) {
+      return { status: 404, data: 'Video not found' }
+    }
+
+    // Check if user owns the video
+    if (video.User?.clerkid !== user.id) {
+      return { status: 403, data: 'Not authorized to delete this video' }
+    }
+
+    // Delete the video from database
+    await client.video.delete({
+      where: { id: videoId },
+    })
+
+    // TODO: Add external storage cleanup here if needed
+    // Example: await deleteFromStorage(video.source)
+
+    return { 
+      status: 200, 
+      data: 'Video deleted successfully',
+      workspaceId: video.workSpaceId,
+      folderId: video.folderId
     }
   } catch (error) {
-    return { status: 400 }
+    return { status: 500, data: 'Failed to delete video' }
+  }
+}
+
+export const deleteWorkspace = async (workspaceId: string) => {
+  try {
+    const user = await currentUser()
+    if (!user) return { status: 404, message: 'User not found' }
+
+    // Check if user has permission to delete this workspace
+    const workspace = await client.workSpace.findFirst({
+      where: {
+        id: workspaceId,
+        User: {
+          clerkid: user.id
+        }
+      },
+      select: { 
+        id: true,
+        folders: {
+          select: {
+            id: true
+          }
+        }
+      }
+    })
+
+    if (!workspace) {
+      return { status: 403, message: 'Not authorized to delete this workspace' }
+    }
+
+    // Check if this is the user's initial workspace (first created)
+    const initialWorkspace = await client.workSpace.findFirst({
+      where: {
+        User: {
+          clerkid: user.id
+        }
+      },
+      orderBy: {
+        createdAt: 'asc'
+      },
+      select: { id: true }
+    })
+    
+    if (workspaceId === initialWorkspace?.id) {
+      return { 
+        status: 403, 
+        message: 'Cannot delete your initial workspace' 
+      }
+    }
+
+    // Delete workspace and all related content in a transaction
+    await client.$transaction(async (tx) => {
+      // First delete all videos in the workspace
+      // This includes videos directly in workspace (null folderId) and those in folders
+      await tx.video.deleteMany({
+        where: {
+          OR: [
+            { workSpaceId: workspaceId },
+            {
+              Folder: {
+                workSpaceId: workspaceId
+              }
+            }
+          ]
+        }
+      })
+
+      // Then delete all folders in the workspace
+      if (workspace.folders && workspace.folders.length > 0) {
+        await tx.folder.deleteMany({
+          where: {
+            workSpaceId: workspaceId
+          }
+        })
+      }
+
+      // Finally delete the workspace itself
+      await tx.workSpace.delete({
+        where: {
+          id: workspaceId
+        }
+      })
+    })
+
+    return { status: 200, message: 'Workspace deleted successfully' }
+  } catch (error) {
+    console.error('Error deleting workspace:', error)
+    
+    // Handle specific Prisma errors
+    if (error instanceof Error && error.message.includes('Foreign key constraint')) {
+      return { status: 409, message: 'Cannot delete workspace with existing content' }
+    }
+    
+    return { status: 500, message: 'Failed to delete workspace' }
+  }
+}
+
+export const deleteFolder = async (folderId: string) => {
+  try {
+    // Get current user for authorization
+    const user = await currentUser()
+    if (!user) {
+      return { status: 401, data: { message: 'Unauthorized' } }
+    }
+
+    // First get the folder with its workspace and user info
+    const folder = await client.folder.findFirst({
+      where: {
+        id: folderId
+      },
+      select: {
+        id: true,
+        workSpaceId: true,
+        WorkSpace: {
+          select: {
+            User: {
+              select: {
+                clerkid: true
+              }
+            }
+          }
+        },
+        videos: {
+          select: {
+            source: true
+          }
+        }
+      }
+    })
+
+    if (!folder) {
+      return { status: 404, data: { message: 'Folder not found' } }
+    }
+
+    // Verify user has permission to delete this folder
+    if (folder.WorkSpace?.User?.clerkid !== user.id) {
+      return { status: 403, data: { message: 'Not authorized to delete this folder' } }
+    }
+
+    // Start a transaction to ensure atomicity
+    return await client.$transaction(async (tx) => {
+      // Delete all videos in the folder
+      if (folder.videos && folder.videos.length > 0) {
+        // First delete video files from storage
+        const videoSources = folder.videos.map((video: { source: string }) => video.source)
+        // TODO: Add your external storage cleanup here
+        // Example: await Promise.all(videoSources.map(source => deleteFromStorage(source)))
+
+        // Then delete video records from database
+        await tx.video.deleteMany({
+          where: {
+            folderId: folderId
+          }
+        })
+      }
+
+      // Delete the folder itself
+      await tx.folder.delete({
+        where: {
+          id: folderId
+        }
+      })
+
+      return {
+        status: 200,
+        data: {
+          message: 'Folder and all its videos deleted successfully',
+          workspaceId: folder.workSpaceId
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Error deleting folder:', error)
+    if (error instanceof Error) {
+      return { 
+        status: 500, 
+        data: { 
+          message: error.message || 'Failed to delete folder and its contents' 
+        } 
+      }
+    }
+    return { status: 500, data: { message: 'Oops! something went wrong' } }
   }
 }

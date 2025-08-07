@@ -30,6 +30,9 @@ import GlobalCard from '../global-card'
 import InfoBar from '../info-bar'
 import PaymentButton from '../payment-button'
 import { WORKSPACES } from '@/redux/slices/workspaces'
+import CreateWorkspaceModal from '../create-workspace/create-workspace-modal'
+import DeleteWorkspaceModal from '../delete-workspace/delete-workspace-modal'
+import { useQueryClient } from '@tanstack/react-query'
 
 type Props = {
   activeWorkspaceId: string
@@ -40,6 +43,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
   const router = useRouter()
   const pathName = usePathname()
   const dispatch = useDispatch()
+  const queryClient = useQueryClient()
 
   const { data, isFetched } = useQueryData(['user-workspaces'], getWorkSpaces)
   const menuItems = MENU_ITEMS(activeWorkspaceId)
@@ -52,7 +56,18 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
   const { data: workspace } = data as WorkspaceProps
   const { data: count } = notifications as NotificationProps
 
-  const onChangeActiveWorkspace = (value: string) => {
+  const onChangeActiveWorkspace = async (value: string) => {
+    try {
+      // Invalidate queries before navigation
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['workspace-folders'] }),
+        queryClient.invalidateQueries({ queryKey: ['user-videos'] })
+      ])
+    } catch (error) {
+      // Log error but continue with navigation
+      console.error('Failed to invalidate queries:', error)
+    }
+    // Continue with navigation regardless of query invalidation success/failure
     router.push(`/dashboard/${value}`)
   }
   const currentWorkspace = workspace.workspace.find(
@@ -67,9 +82,9 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
     <div className="bg-[#111111] flex-none relative p-4 h-full w-[250px] flex flex-col gap-4 items-center overflow-hidden">
       <div className="bg-[#111111] p-4 flex gap-2 justify-center items-center mb-4 absolute top-0 left-0 right-0 ">
         <Image
-          src="/logo.svg"
-          height={40}
-          width={40}
+          src="/lumora.png"
+          height={45}
+          width={45}
           alt="logo"
         />
         <p className="text-2xl font-bold title">LUMORA</p>
@@ -78,7 +93,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
         defaultValue={activeWorkspaceId}
         onValueChange={onChangeActiveWorkspace}
       >
-        <SelectTrigger className="mt-16 text-neutral-400 bg-transparent">
+        <SelectTrigger className="mt-16 text-neutral-400 bg-transparent focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0">
           <SelectValue placeholder="Select a workspace"></SelectValue>
         </SelectTrigger>
         <SelectContent className="bg-[#111111] backdrop-blur-xl">
@@ -161,40 +176,56 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
         </div>
       )}
 
+      {workspace.subscription?.plan === 'PRO' && (
+        <CreateWorkspaceModal />
+      )}
+
       <nav className="w-full">
         <ul className="max-h-[150px] overflow-auto overflow-x-hidden fade-layer">
           {workspace.workspace.length > 0 &&
             workspace.workspace.map(
-              (item) =>
-                item.type !== 'PERSONAL' && (
+              (item, index) => (
+                <div key={item.id} className="flex items-center justify-between pr-2 group">
                   <SidebarItem
                     href={`/dashboard/${item.id}`}
                     selected={pathName === `/dashboard/${item.id}`}
                     title={item.name}
                     notifications={0}
-                    key={item.name}
                     icon={
                       <WorkspacePlaceholder>
                         {item.name.charAt(0)}
                       </WorkspacePlaceholder>
                     }
                   />
-                )
+                  {index !== 0 && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <DeleteWorkspaceModal workspaceId={item.id} workspaceName={item.name} />
+                    </div>
+                  )}
+                </div>
+              )
             )}
           {workspace.members.length > 0 &&
             workspace.members.map((item) => (
-              <SidebarItem
-                href={`/dashboard/${item.WorkSpace.id}`}
-                selected={pathName === `/dashboard/${item.WorkSpace.id}`}
-                title={item.WorkSpace.name}
-                notifications={0}
-                key={item.WorkSpace.name}
-                icon={
-                  <WorkspacePlaceholder>
-                    {item.WorkSpace.name.charAt(0)}
-                  </WorkspacePlaceholder>
-                }
-              />
+              <div key={item.WorkSpace.id} className="flex items-center justify-between pr-2 group">
+                <SidebarItem
+                  href={`/dashboard/${item.WorkSpace.id}`}
+                  selected={pathName === `/dashboard/${item.WorkSpace.id}`}
+                  title={item.WorkSpace.name}
+                  notifications={0}
+                  icon={
+                    <WorkspacePlaceholder>
+                      {item.WorkSpace.name.charAt(0)}
+                    </WorkspacePlaceholder>
+                  }
+                />
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DeleteWorkspaceModal 
+                    workspaceId={item.WorkSpace.id} 
+                    workspaceName={item.WorkSpace.name} 
+                  />
+                </div>
+              </div>
             ))}
         </ul>
       </nav>

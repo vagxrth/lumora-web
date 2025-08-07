@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "LUMORA",
   description: "Real-Time Video Recording & Sharing Platform",
   icons: {
-    icon: '/logo.svg'
+    icon: '/lumora.png'
   }
 };
 

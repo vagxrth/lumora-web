@@ -14,7 +14,7 @@ import Sidebar from '@/components/global/sidebar'
 import GlobalHeader from '@/components/global/global-header'
 
 type Props = {
-  params: { workspaceId: string }
+  params: Promise<{ workspaceId: string }>
   children: React.ReactNode
 }
 

@@ -14,21 +14,26 @@ import {
     title: string
     description: string
     className?: string
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
   }
   
-  const Modal = ({ children, description, title, trigger, className }: Props) => {
+  const Modal = ({ children, description, title, trigger, className, open, onOpenChange }: Props) => {
     return (
-      <Dialog>
+      <Dialog 
+        open={open} 
+        onOpenChange={onOpenChange}
+      >
         <DialogTrigger
           className={className}
           asChild
         >
           {trigger}
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="bg-[#1D1D1D] border-[#252525]">
           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            <DialogTitle className="text-[#9D9D9D] text-md">{title}</DialogTitle>
+            <DialogDescription className="text-[#707070]">{description}</DialogDescription>
           </DialogHeader>
           {children}
         </DialogContent>

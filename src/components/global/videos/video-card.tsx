@@ -81,18 +81,6 @@ const VideoCard = (props: Props) => {
                 </p>
               </div>
             </div>
-            <div className="mt-4">
-              <span className="flex gap-x-1 items-center">
-                <Share2
-                  fill="#9D9D9D"
-                  className="text-[#9D9D9D]"
-                  size={12}
-                />
-                <p className="text-xs text-[#9D9D9D] capitalize">
-                  {props.User?.firstname}&apos;s Workspace
-                </p>
-              </span>
-            </div>
           </div>
         </Link>
       </div>

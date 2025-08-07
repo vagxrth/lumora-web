@@ -1,8 +1,11 @@
-type Props = {}
+type Props = {
+  className?: string
+}
 
-const FolderDuotone = (props: Props) => {
+const FolderDuotone = ({ className }: Props) => {
   return (
     <svg
+      className={className}
       width="24"
       height="24"
       viewBox="0 0 24 24"

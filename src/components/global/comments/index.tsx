@@ -5,25 +5,24 @@ import React from 'react'
 import CommentCard from '../comment-card'
 import { useQueryData } from '@/hooks/useQueryData'
 import { getVideoComments } from '@/actions/user'
-import { VideoCommentProps } from '@/types/index.type'
 
 type Props = {
   author: string
   videoId: string
 }
 
-const Activities = ({ author, videoId }: Props) => {
-  const { data } = useQueryData(['video-comments'], () =>
+const Comments = ({ author, videoId }: Props) => {
+  const { data } = useQueryData(['video-comments', videoId], () =>
     getVideoComments(videoId)
   )
 
-  const { data: comments } = data as VideoCommentProps
+  const { data: comments } = data || { data: [] }
 
 
   return (
     <TabsContent
-      value="Activity"
-      className="rounded-xl flex flex-col gap-y-5"
+      value="Comments"
+      className="rounded-xl flex flex-col gap-y-5 px-4 pt-0 pb-4 mt-0"
     >
       <CommentForm
         author={author}
@@ -48,4 +47,4 @@ const Activities = ({ author, videoId }: Props) => {
   )
 }
 
-export default Activities
+export default Comments
