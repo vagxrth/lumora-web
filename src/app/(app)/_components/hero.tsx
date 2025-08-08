@@ -24,15 +24,24 @@ const Hero = () => {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Link href="/auth/signin">
+          <Link href="/auth/signup">
             <Button size="lg" className="bg-white hover:bg-white/90 text-black px-8 py-4 text-lg font-semibold rounded-full">
               Get started for free
+            </Button>
+          </Link>
+          <Link href="/auth/signin">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="px-8 py-4 text-lg font-semibold rounded-full border-2 border-white text-white hover:bg-white/10"
+            >
+              Sign In
             </Button>
           </Link>
           <Button 
             variant="outline" 
             size="lg" 
-            className="px-8 py-4 text-lg font-semibold rounded-full border-2 border-white text-white hover:bg-white/10"
+            className="px-8 py-4 text-lg font-semibold rounded-full border-2 border-white/50 text-white/70 hover:bg-white/5 hover:text-white hover:border-white/70"
             onClick={scrollToPricing}
           >
             Upgrade to Pro
