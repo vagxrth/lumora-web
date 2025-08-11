@@ -29,15 +29,6 @@ const Hero = () => {
               Get started for free
             </Button>
           </Link>
-          <Link href="/auth/signin">
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="px-8 py-4 text-lg font-semibold rounded-full border-2 border-white text-white hover:bg-white/10"
-            >
-              Sign In
-            </Button>
-          </Link>
           <Button 
             variant="outline" 
             size="lg" 
